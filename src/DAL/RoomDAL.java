@@ -50,7 +50,7 @@ public class RoomDAL {
                 ps.setString(5, room.getDescription());
                 ps.setInt(6, room.getArea());
                 ps.setDouble(7, room.getPrice());
-                ps.setBoolean(8, room.isStatus());
+                ps.setString(8, room.getStatus());   // ENUM string: PENDING/APPROVED/DECLINED
                 ps.setBoolean(9, room.isAvailability());
                 ps.executeUpdate();
             }
@@ -183,7 +183,7 @@ public class RoomDAL {
      */
     public List<RoomDTO> getAvailableApprovedRooms() {
         List<RoomDTO> list = new ArrayList<>();
-        String sql = "SELECT * FROM rooms WHERE status = TRUE AND availability = TRUE ORDER BY created_at DESC";
+        String sql = "SELECT * FROM rooms WHERE status = 'APPROVED' AND availability = TRUE ORDER BY created_at DESC";
         try (Statement st = getConn().createStatement();
              ResultSet rs = st.executeQuery(sql)) {
             while (rs.next()) {
@@ -198,14 +198,14 @@ public class RoomDAL {
     }
 
     /**
-     * Lấy danh sách phòng theo trạng thái duyệt (status).
-     * @param approved true = đã duyệt, false = chờ duyệt
+     * Lấy danh sách phòng theo trạng thái duyệt.
+     * @param status "PENDING" | "APPROVED" | "DECLINED"
      */
-    public List<RoomDTO> getByStatus(boolean approved) {
+    public List<RoomDTO> getByStatus(String status) {
         List<RoomDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM rooms WHERE status = ? ORDER BY created_at DESC";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
-            ps.setBoolean(1, approved);
+            ps.setString(1, status);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(mapRow(rs));
             }
@@ -240,7 +240,7 @@ public class RoomDAL {
             sb.append("JOIN room_amenities ra ON r.room_id = ra.room_id ");
         }
 
-        sb.append("WHERE r.status = TRUE AND r.availability = TRUE ");
+        sb.append("WHERE r.status = 'APPROVED' AND r.availability = TRUE ");
 
         if (keyword != null && !keyword.isEmpty()) {
             sb.append("AND (r.title LIKE ? OR r.address LIKE ?) ");
@@ -315,7 +315,7 @@ public class RoomDAL {
                 ps.setString(4, room.getDescription());
                 ps.setInt(5, room.getArea());
                 ps.setDouble(6, room.getPrice());
-                ps.setBoolean(7, room.isStatus());
+                ps.setString(7, room.getStatus());  // ENUM: PENDING/APPROVED/DECLINED
                 ps.setBoolean(8, room.isAvailability());
                 ps.setString(9, room.getRoomId());
                 ps.executeUpdate();
@@ -342,11 +342,12 @@ public class RoomDAL {
 
     /**
      * Chỉ cập nhật trạng thái duyệt (status) của phòng.
+     * @param status "PENDING" | "APPROVED" | "DECLINED"
      */
-    public boolean updateStatus(String roomId, boolean status) {
+    public boolean updateStatus(String roomId, String status) {
         String sql = "UPDATE rooms SET status = ? WHERE room_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
-            ps.setBoolean(1, status);
+            ps.setString(1, status);
             ps.setString(2, roomId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -478,6 +479,21 @@ public class RoomDAL {
         try { conn.setAutoCommit(true); } catch (SQLException ignored) {}
     }
 
+    /**
+     * Cập nhật các trường cơ bản của phòng trong UPDATE.
+     */
+    private void setRoomUpdateParams(PreparedStatement ps, RoomDTO room) throws SQLException {
+        ps.setString(1, room.getLandlordId());
+        ps.setString(2, room.getTitle());
+        ps.setString(3, room.getAddress());
+        ps.setString(4, room.getDescription());
+        ps.setInt(5, room.getArea());
+        ps.setDouble(6, room.getPrice());
+        ps.setString(7, room.getStatus());  // ENUM string
+        ps.setBoolean(8, room.isAvailability());
+        ps.setString(9, room.getRoomId());
+    }
+
     private RoomDTO mapRow(ResultSet rs) throws SQLException {
         return new RoomDTO(
                 rs.getString("room_id"),
@@ -487,7 +503,7 @@ public class RoomDAL {
                 rs.getString("description"),
                 rs.getInt("area"),
                 rs.getDouble("price"),
-                rs.getBoolean("status"),
+                rs.getString("status"),        // đọc ENUM string từ DB
                 rs.getBoolean("availability"),
                 rs.getTimestamp("created_at") != null
                         ? rs.getTimestamp("created_at").toLocalDateTime()

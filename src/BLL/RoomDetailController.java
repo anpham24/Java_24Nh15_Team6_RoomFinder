@@ -52,7 +52,7 @@ public class RoomDetailController {
     private void populateRoomInfo() {
         view.getLbTitle().setText(room.getTitle());
         view.getLbAvailability().setText(room.isAvailability() ? "Còn phòng" : "Hết phòng");
-        view.getLbStatus().setText(room.isStatus() ? "Đã duyệt" : "Chờ duyệt");
+        view.getLbStatus().setText(statusToLabel(room.getStatus()));
         view.getLbDescription().setText(
                 "<html><body style='width:430px'>" + room.getDescription() + "</body></html>"
         );
@@ -178,6 +178,7 @@ public class RoomDetailController {
                 view.getLbStatus().setVisible(true);
                 view.getTxtReview().setVisible(false);
                 view.getCboRating().setVisible(false);
+                view.getLbStar().setVisible(false);
                 view.getBtnSubmit().setVisible(false);
             }
             case ADMIN -> {
@@ -188,6 +189,7 @@ public class RoomDetailController {
                 view.getLbStatus().setVisible(true);
                 view.getTxtReview().setVisible(false);
                 view.getCboRating().setVisible(false);
+                view.getLbStar().setVisible(false);
                 view.getBtnSubmit().setVisible(false);
             }
         }
@@ -269,5 +271,14 @@ public class RoomDetailController {
         } else {
             JOptionPane.showMessageDialog(view, "Đăng đánh giá thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String statusToLabel(String status) {
+        if (status == null) return "Chờ duyệt";
+        return switch (status) {
+            case "APPROVED" -> "✔ Đã duyệt";
+            case "DECLINED" -> "✘ Bị từ chối";
+            default         -> "⏳ Chờ duyệt";
+        };
     }
 }

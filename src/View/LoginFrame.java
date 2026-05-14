@@ -17,6 +17,8 @@ public class LoginFrame extends javax.swing.JFrame {
      */
     public LoginFrame() {
         initComponents();
+        this.setLocationRelativeTo(null);
+        this.setResizable(false);
         new BLL.LoginController(this);
     }
 

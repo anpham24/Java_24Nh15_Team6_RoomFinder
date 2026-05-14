@@ -64,7 +64,7 @@ public class LandlordController {
         card.getLbAddress().setText(truncate(room.getAddress(), 40));
         card.getLbAvailability().setText(room.isAvailability() ? "Còn phòng" : "Hết phòng");
         card.getLbRating().setText(String.format("⭐ %.1f", avgRating));
-        card.getLbStatus().setText(room.isStatus() ? "Đã duyệt" : "Chờ duyệt");
+        card.getLbStatus().setText(statusToLabel(room.getStatus()));
 
         // Đổ tiện nghi (tối đa 3)
         JPanel pnAmenity = card.getPnAmenity();
@@ -153,5 +153,14 @@ public class LandlordController {
 
     private String truncate(String s, int max) {
         return (s == null || s.length() <= max) ? s : s.substring(0, max) + "…";
+    }
+
+    private String statusToLabel(String status) {
+        if (status == null) return "Chờ duyệt";
+        return switch (status) {
+            case "APPROVED" -> "✔ Đã duyệt";
+            case "DECLINED" -> "✘ Bị từ chối";
+            default         -> "⏳ Chờ duyệt";
+        };
     }
 }

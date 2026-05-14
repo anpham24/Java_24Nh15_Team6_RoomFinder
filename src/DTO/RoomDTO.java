@@ -18,7 +18,8 @@ public class RoomDTO {
     private String description;
     private int    area;
     private double price;
-    private boolean status;          // false = chưa duyệt, true = đã duyệt
+    /** Trạng thái duyệt: "PENDING" | "APPROVED" | "DECLINED" */
+    private String status;
     private boolean availability;    // true = còn phòng
     private LocalDateTime createdAt;
 
@@ -30,7 +31,7 @@ public class RoomDTO {
 
     public RoomDTO(String roomId, String landlordId, String title, String address,
                    String description, int area, double price,
-                   boolean status, boolean availability, LocalDateTime createdAt) {
+                   String status, boolean availability, LocalDateTime createdAt) {
         this.roomId       = roomId;
         this.landlordId   = landlordId;
         this.title        = title;
@@ -66,8 +67,8 @@ public class RoomDTO {
     public double getPrice()            { return price; }
     public void setPrice(double price)  { this.price = price; }
 
-    public boolean isStatus()              { return status; }
-    public void setStatus(boolean status)  { this.status = status; }
+    public String getStatus()             { return status; }
+    public void setStatus(String status)   { this.status = status; }
 
     public boolean isAvailability()                    { return availability; }
     public void setAvailability(boolean availability)  { this.availability = availability; }
@@ -84,6 +85,6 @@ public class RoomDTO {
     @Override
     public String toString() {
         return "RoomDTO{roomId='" + roomId + "', title='" + title
-                + "', price=" + price + ", status=" + status + "}";
+                + "', price=" + price + ", status='" + status + "'}";
     }
 }

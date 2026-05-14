@@ -103,7 +103,6 @@ public class AdminMainFrame extends javax.swing.JFrame {
         btnDeleteAmenity = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(1280, 720));
         setSize(new java.awt.Dimension(1280, 720));
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
@@ -147,16 +146,9 @@ public class AdminMainFrame extends javax.swing.JFrame {
                 "ID", "Tiêu đề", "Chủ trọ", "Ngày đăng", "Trạng thái"
             }
         ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
             boolean[] canEdit = new boolean [] {
                 false, false, false, false, false
             };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
@@ -194,16 +186,9 @@ public class AdminMainFrame extends javax.swing.JFrame {
                 "ID", "Tiêu đề", "Chủ trọ", "Giá thuê", "Trạng thái"
             }
         ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Double.class, java.lang.String.class
-            };
             boolean[] canEdit = new boolean [] {
                 false, false, false, true, false
             };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
@@ -247,25 +232,18 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
         tbUserManage.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null},
-                {null, null, null, null, null}
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
             },
             new String [] {
-                "ID", "Tên", "Số điện thoại", "Vai trò", "Trạng thái"
+                "ID", "Tên", "Số điện thoại", "Vai trò"
             }
         ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.String.class
-            };
             boolean[] canEdit = new boolean [] {
-                false, false, false, false, false
+                false, false, false, false
             };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
 
             public boolean isCellEditable(int rowIndex, int columnIndex) {
                 return canEdit [columnIndex];
@@ -284,7 +262,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
         jLabel5.setText("Vai trò");
         jPanel4.add(jLabel5);
 
-        cboRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Chủ trọ", "Người thuê" }));
+        cboRole.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Tất cả", "Chủ trọ", "Người thuê" }));
         jPanel4.add(cboRole);
 
         btnSearchUser.setText("Tìm/Lọc");
@@ -313,15 +291,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
             new String [] {
                 "ID", "Tên tiện nghi"
             }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.String.class, java.lang.String.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
+        ));
         jScrollPane4.setViewportView(tbAmenityManage);
 
         pnAmenityManage.add(jScrollPane4, java.awt.BorderLayout.CENTER);

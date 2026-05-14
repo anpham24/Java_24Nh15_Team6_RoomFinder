@@ -48,6 +48,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     public javax.swing.JTextField getTxtReview()         { return txtReview; }
     public javax.swing.JComboBox<String> getCboRating()  { return cboRating; }
     public javax.swing.JButton getBtnSubmit()            { return btnSubmit; }
+    public javax.swing.JLabel getLbStar()                { return lbStar; }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -79,13 +80,13 @@ public class RoomDetailFrame extends javax.swing.JFrame {
         txtReview = new javax.swing.JTextField();
         cboRating = new javax.swing.JComboBox<>();
         btnSubmit = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        lbStar = new javax.swing.JLabel();
         btnUpdate = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
         lbStatus = new javax.swing.JLabel();
         btnAvailability = new javax.swing.JButton();
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setSize(new java.awt.Dimension(1280, 720));
 
         lbMainImage.setText("jLabel1");
@@ -148,7 +149,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
 
         btnSubmit.setText("Đăng");
 
-        jLabel5.setText("sao");
+        lbStar.setText("sao");
 
         btnUpdate.setText("Sửa bài");
 
@@ -207,7 +208,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(cboRating, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel5)
+                                .addComponent(lbStar)
                                 .addGap(12, 12, 12)
                                 .addComponent(btnSubmit, javax.swing.GroupLayout.PREFERRED_SIZE, 110, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(0, 0, Short.MAX_VALUE))
@@ -268,7 +269,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtReview, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cboRating, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lbStar, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(btnSubmit, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addGap(26, 26, 26))
         );
@@ -311,7 +312,6 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel lbAddress;
@@ -322,6 +322,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     private javax.swing.JLabel lbPhone;
     private javax.swing.JLabel lbPrice;
     private javax.swing.JLabel lbRating;
+    private javax.swing.JLabel lbStar;
     private javax.swing.JLabel lbStatus;
     private javax.swing.JLabel lbTitle;
     private javax.swing.JPanel pnAmenity;

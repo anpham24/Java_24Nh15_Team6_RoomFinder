@@ -17,6 +17,8 @@ public class RegisterFrame extends javax.swing.JFrame {
      */
     public RegisterFrame() {
         initComponents();
+        this.setLocationRelativeTo(null);
+        this.setResizable(false);
         new BLL.RegisterController(this);
     }
 

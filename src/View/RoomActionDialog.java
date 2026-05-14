@@ -106,7 +106,9 @@ public class RoomActionDialog extends javax.swing.JDialog {
         btnSave.setText("Lưu");
 
         txtDescription.setColumns(20);
+        txtDescription.setLineWrap(true);
         txtDescription.setRows(5);
+        txtDescription.setWrapStyleWord(true);
         jScrollPane1.setViewportView(txtDescription);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());

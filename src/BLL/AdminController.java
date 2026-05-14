@@ -33,11 +33,48 @@ public class AdminController {
         this.view = view;
         this.currentUser = user;
 
+        setupTableModels();       // phải gọi đầu tiên trước khi nạp dữ liệu
         loadApproveTab();
         loadRoomManageTab(null, null);
         loadUserManageTab(null, null);
         loadAmenityTab();
         initEvents();
+    }
+
+    /**
+     * Override model của tất cả các bảng để:
+     * 1. Tất cả cột dùng Object.class → tránh lỗi ClassCastException
+     *    (Netbeans có thể tự set cột "Giá" là Double, nhưng ta truyền String vào)
+     * 2. Ngăn người dùng chỉnh sửa đd trực tiếp trong bảng
+     */
+    private void setupTableModels() {
+        // Tab 1 – Chờ duyệt
+        view.getTbApproveRoom().setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tiêu đề", "Chủ trọ", "Ngày đăng", "Trạng thái"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+
+        // Tab 2 – Quản lý bài đăng
+        view.getTbRoomManage().setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tiêu đề", "Chủ trọ", "Giá thuê", "Trạng thái"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+
+        // Tab 3 – Quản lý người dùng (bỏ cột "Trạng thái" theo yêu cầu)
+        view.getTbUserManage().setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tên", "Số điện thoại", "Vai trò"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+
+        // Tab 4 – Quản lý tiện nghi
+        view.getTbAmenityManage().setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tên tiện nghi"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
     }
 
     // ═══════════════════════════════════════════════════
@@ -47,7 +84,7 @@ public class AdminController {
         DefaultTableModel model = (DefaultTableModel) view.getTbApproveRoom().getModel();
         model.setRowCount(0);
 
-        List<RoomDTO> pending = roomDAL.getByStatus(false); // status = false → PENDING
+        List<RoomDTO> pending = roomDAL.getByStatus("PENDING");
         for (RoomDTO r : pending) {
             UserDTO landlord = userDAL.getById(r.getLandlordId());
             String landlordName = landlord != null ? landlord.getName() : r.getLandlordId();
@@ -62,7 +99,7 @@ public class AdminController {
     // ═══════════════════════════════════════════════════
     // TAB 2 – Quản lý bài đăng
     // ═══════════════════════════════════════════════════
-    private void loadRoomManageTab(String keyword, Boolean statusFilter) {
+    private void loadRoomManageTab(String keyword, String statusFilter) {
         DefaultTableModel model = (DefaultTableModel) view.getTbRoomManage().getModel();
         model.setRowCount(0);
 
@@ -73,17 +110,27 @@ public class AdminController {
                 if (!r.getTitle().toLowerCase().contains(keyword.toLowerCase())
                         && !r.getAddress().toLowerCase().contains(keyword.toLowerCase())) continue;
             }
-            // Lọc theo status
-            if (statusFilter != null && r.isStatus() != statusFilter) continue;
+            // Lọc theo status (String ENUM)
+            if (statusFilter != null && !statusFilter.equals(r.getStatus())) continue;
 
             UserDTO landlord = userDAL.getById(r.getLandlordId());
             String landlordName = landlord != null ? landlord.getName() : r.getLandlordId();
             model.addRow(new Object[]{
                 r.getRoomId(), r.getTitle(), landlordName,
                 String.format("%,.0f", r.getPrice()),
-                r.isStatus() ? "Đã duyệt" : "Chờ duyệt"
+                statusToLabel(r.getStatus())
             });
         }
+    }
+
+    /** Chuyển ENUM status sang nhãn tiếng Việt */
+    private String statusToLabel(String status) {
+        if (status == null) return "Không rõ";
+        return switch (status) {
+            case "APPROVED"  -> "Đã duyệt";
+            case "DECLINED"  -> "Bị từ chối";
+            default          -> "Chờ duyệt";  // PENDING
+        };
     }
 
     // ═══════════════════════════════════════════════════
@@ -95,7 +142,7 @@ public class AdminController {
 
         List<UserDTO> users = userDAL.getAll();
         for (UserDTO u : users) {
-            if (u.getRole() == UserDTO.Role.ADMIN) continue; // Không hiện admin
+            if (u.getRole() == UserDTO.Role.ADMIN) continue;
 
             if (keyword != null && !keyword.isEmpty()) {
                 if (!u.getName().toLowerCase().contains(keyword.toLowerCase())
@@ -105,8 +152,7 @@ public class AdminController {
 
             model.addRow(new Object[]{
                 u.getUserId(), u.getName(), u.getPhoneNumber(),
-                u.getRole() == UserDTO.Role.LANDLORD ? "Chủ trọ" : "Người thuê",
-                "Hoạt động"
+                u.getRole() == UserDTO.Role.LANDLORD ? "Chủ trọ" : "Người thuê"
             });
         }
     }
@@ -157,7 +203,8 @@ public class AdminController {
         if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
 
         String roomId = (String) view.getTbApproveRoom().getValueAt(row, 0);
-        if (roomDAL.updateStatus(roomId, approve)) {
+        String newStatus = approve ? "APPROVED" : "DECLINED";
+        if (roomDAL.updateStatus(roomId, newStatus)) {
             JOptionPane.showMessageDialog(view, approve ? "Đã duyệt bài." : "Đã từ chối bài.");
             loadApproveTab();
             loadRoomManageTab(null, null);
@@ -170,10 +217,12 @@ public class AdminController {
     private void handleSearchRoom() {
         String keyword = view.getTxtSearchRoom().getText().trim();
         String statusStr = (String) view.getCboStatus().getSelectedItem();
-        Boolean statusFilter = switch (statusStr) {
-            case "Đã duyệt" -> true;
-            case "Chờ duyệt" -> false;
-            default -> null;
+        // Map nhãn tiếng Việt → ENUM string
+        String statusFilter = switch (statusStr) {
+            case "Đã duyệt"   -> "APPROVED";
+            case "Chờ duyệt" -> "PENDING";
+            case "Bị từ chối" -> "DECLINED";
+            default           -> null;   // Tất cả
         };
         loadRoomManageTab(keyword, statusFilter);
     }

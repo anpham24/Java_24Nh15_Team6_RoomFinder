@@ -10,6 +10,11 @@ import View.RoomActionDialog;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -100,7 +105,7 @@ public class RoomActionController {
         view.getBtnExit().addActionListener(e -> view.dispose());
     }
 
-    /** Mở JFileChooser để chọn ảnh, thêm vào danh sách và hiển thị preview. */
+    /** Mở JFileChooser để chọn ảnh, copy vào folder Images, lưu đường dẫn local. */
     private void handleBrowseImage() {
         JFileChooser fc = new JFileChooser();
         fc.setMultiSelectionEnabled(true);
@@ -108,14 +113,71 @@ public class RoomActionController {
                 "Image Files", "jpg", "jpeg", "png", "gif", "bmp"
         ));
         int result = fc.showOpenDialog(view);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            for (File f : fc.getSelectedFiles()) {
-                if (!selectedImagePaths.contains(f.getAbsolutePath())) {
-                    selectedImagePaths.add(f.getAbsolutePath());
+        if (result != JFileChooser.APPROVE_OPTION) return;
+
+        File imagesDir = getImagesDir();
+        List<String> errors = new ArrayList<>();
+
+        for (File srcFile : fc.getSelectedFiles()) {
+            try {
+                String copiedPath = copyToImagesFolder(srcFile, imagesDir);
+                if (!selectedImagePaths.contains(copiedPath)) {
+                    selectedImagePaths.add(copiedPath);
                 }
+            } catch (IOException ex) {
+                errors.add(srcFile.getName() + ": " + ex.getMessage());
             }
-            renderImagePreviews();
         }
+
+        if (!errors.isEmpty()) {
+            JOptionPane.showMessageDialog(view,
+                    "Không thể sao chép các ảnh sau:\n" + String.join("\n", errors),
+                    "Lỗi sao chép ảnh", JOptionPane.WARNING_MESSAGE);
+        }
+
+        renderImagePreviews();
+    }
+
+    /**
+     * Copy một file ảnh vào thư mục Images.<br>
+     * Nếu tên file đã tồn tại, thêm UUID prefix để tránh ghi đè.<br>
+     * @return đường dẫn tuyệt đối của file sau khi được copy vào Images.
+     */
+    private String copyToImagesFolder(File srcFile, File imagesDir) throws IOException {
+        String fileName = srcFile.getName();
+        File dest = new File(imagesDir, fileName);
+
+        // Nếu tên trùng, thêm UUID prefix
+        if (dest.exists() && !dest.getAbsolutePath().equals(srcFile.getAbsolutePath())) {
+            String ext = fileName.contains(".")
+                    ? fileName.substring(fileName.lastIndexOf("."))
+                    : "";
+            String base = fileName.contains(".")
+                    ? fileName.substring(0, fileName.lastIndexOf("."))
+                    : fileName;
+            fileName = base + "_" + UUID.randomUUID().toString().substring(0, 8) + ext;
+            dest = new File(imagesDir, fileName);
+        }
+
+        // Không copy nếu file nguồn đã ở đúng chỗ
+        if (!srcFile.getAbsolutePath().equals(dest.getAbsolutePath())) {
+            Files.copy(srcFile.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        }
+        return dest.getAbsolutePath();
+    }
+
+    /**
+     * Lấy thư mục Images, tự tạo nếu chưa tồn tại.<br>
+     * Đường dẫn: [project_root]/src/Images
+     */
+    private File getImagesDir() {
+        // Đường dẫn tương đối từ working directory (thường là project root khi chạy trong NetBeans)
+        Path imagesPath = Paths.get("src", "Images");
+        File imagesDir = imagesPath.toFile();
+        if (!imagesDir.exists()) {
+            imagesDir.mkdirs();
+        }
+        return imagesDir;
     }
 
     /** Hiển thị preview ảnh đã chọn vào pnImageList. */
@@ -196,8 +258,8 @@ public class RoomActionController {
                     UUID.randomUUID().toString(),
                     currentUser.getUserId(),
                     title, addr, desc, area, price,
-                    false,  // status = PENDING
-                    true,   // availability = còn phòng
+                    "PENDING",  // Phòng mới luôn ở trạng thái chờ duyệt
+                    true,       // availability = còn phòng
                     java.time.LocalDateTime.now()
             );
             newRoom.setImagePathList(new ArrayList<>(selectedImagePaths));
