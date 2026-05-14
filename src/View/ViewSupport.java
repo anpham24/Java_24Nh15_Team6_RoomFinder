@@ -28,16 +28,16 @@ final class ViewSupport {
     }
 
     static void showInfo(Component parent, String message) {
-        JOptionPane.showMessageDialog(parent, message, "Info", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(parent, message, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
     }
 
     static void showError(Component parent, Exception ex) {
         ex.printStackTrace(System.err);
-        JOptionPane.showMessageDialog(parent, errorMessage(ex), "Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(parent, errorMessage(ex), "Lỗi", JOptionPane.ERROR_MESSAGE);
     }
 
     static boolean confirm(Component parent, String message) {
-        return JOptionPane.showConfirmDialog(parent, message, "Confirm",
+        return JOptionPane.showConfirmDialog(parent, message, "Xác nhận",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE) == JOptionPane.YES_OPTION;
     }
 
@@ -55,17 +55,17 @@ final class ViewSupport {
 
     static String rating(double average, int count) {
         if (count <= 0) {
-            return "No rating";
+            return "Chưa có đánh giá";
         }
         return String.format(Locale.US, "%.1f/5 (%d)", average, count);
     }
 
     static String availability(boolean available) {
-        return available ? "Available" : "Unavailable";
+        return available ? "Còn phòng" : "Hết phòng";
     }
 
     static String status(boolean approved) {
-        return approved ? "Approved" : "Pending";
+        return approved ? "Đã duyệt" : "Chờ duyệt";
     }
 
     static String role(Role role) {
@@ -80,7 +80,7 @@ final class ViewSupport {
         ImageIcon icon = imageIcon(imagePath);
         if (icon == null) {
             label.setIcon(null);
-            label.setText("No image");
+            label.setText("Không có ảnh");
             label.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
             return;
         }
@@ -107,10 +107,10 @@ final class ViewSupport {
     private static String errorMessage(Exception ex) {
         String message = safe(ex.getMessage());
         if (ex instanceof java.sql.SQLException) {
-            return "Database error: " + message;
+            return "Lỗi cơ sở dữ liệu: " + message;
         }
         if (ex instanceof SecurityException) {
-            return "Permission denied: " + message;
+            return "Không có quyền: " + message;
         }
         return message;
     }

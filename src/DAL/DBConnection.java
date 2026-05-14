@@ -8,7 +8,7 @@ public final class DBConnection {
     private static final String DEFAULT_URL = "jdbc:mysql://localhost:3306/Room_Finder"
             + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Bangkok";
     private static final String DEFAULT_USERNAME = "root";
-    private static final String DEFAULT_PASSWORD = "";
+    private static final String DEFAULT_PASSWORD = "0906";
 
     private DBConnection() {
     }

@@ -17,17 +17,17 @@ public class AuthBLL {
     public LoginResultDTO login(String username, String password) throws SQLException {
         String normalizedUsername = normalize(username);
         if (normalizedUsername.isBlank() || password == null || password.isBlank()) {
-            return LoginResultDTO.failure("Username and password are required");
+            return LoginResultDTO.failure("Tên đăng nhập và mật khẩu là bắt buộc");
         }
 
         AccountDTO account = accountDAL.findByUsername(normalizedUsername);
         if (account == null || !account.getPassword().equals(password)) {
-            return LoginResultDTO.failure("Invalid username or password");
+            return LoginResultDTO.failure("Tên đăng nhập hoặc mật khẩu không hợp lệ");
         }
 
         UserDTO user = userDAL.findByUsername(normalizedUsername);
         if (user == null) {
-            return LoginResultDTO.failure("Account has no user profile");
+            return LoginResultDTO.failure("Tài khoản không có hồ sơ người dùng");
         }
 
         SessionContext.setCurrentUser(user);
@@ -43,7 +43,7 @@ public class AuthBLL {
             connection.setAutoCommit(false);
             try {
                 if (accountDAL.existsByUsername(connection, normalizedUsername)) {
-                    throw new IllegalArgumentException("Username already exists");
+                    throw new IllegalArgumentException("Tên đăng nhập đã tồn tại");
                 }
 
                 AccountDTO account = new AccountDTO(normalizedUsername, password);
@@ -68,22 +68,22 @@ public class AuthBLL {
 
     private void validateRegistration(String username, String password, String name, String phoneNumber, Role role) {
         if (username.isBlank()) {
-            throw new IllegalArgumentException("Username is required");
+            throw new IllegalArgumentException("Tên đăng nhập là bắt buộc");
         }
         if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("Password is required");
+            throw new IllegalArgumentException("Mật khẩu là bắt buộc");
         }
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("Name is required");
+            throw new IllegalArgumentException("Họ tên là bắt buộc");
         }
         if (phoneNumber == null || phoneNumber.isBlank()) {
-            throw new IllegalArgumentException("Phone number is required");
+            throw new IllegalArgumentException("Số điện thoại là bắt buộc");
         }
         if (!phoneNumber.trim().matches("[0-9+() .-]{8,20}")) {
-            throw new IllegalArgumentException("Invalid phone number");
+            throw new IllegalArgumentException("Số điện thoại không hợp lệ");
         }
         if (role == null || !role.canRegister()) {
-            throw new IllegalArgumentException("Only tenant or landlord accounts can be registered");
+            throw new IllegalArgumentException("Chỉ có tài khoản người thuê hoặc chủ trọ mới có thể đăng ký");
         }
     }
 

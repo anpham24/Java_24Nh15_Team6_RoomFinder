@@ -151,7 +151,7 @@ public class LoginFrame extends javax.swing.JFrame {
         if (role == Role.TENANT) {
             return new TenantMainFrame();
         }
-        throw new IllegalArgumentException("Unsupported role");
+        throw new IllegalArgumentException("Vai trò không được hỗ trợ");
     }
 
     /**

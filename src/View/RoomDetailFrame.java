@@ -79,6 +79,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
         txtReview = new javax.swing.JTextField();
         cboRating = new javax.swing.JComboBox<>();
         btnSubmit = new javax.swing.JButton();
+        btnLoginPrompt = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
         btnUpdate = new javax.swing.JButton();
         btnDelete = new javax.swing.JButton();
@@ -202,6 +203,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
                         .addGap(36, 36, 36))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(btnLoginPrompt)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(txtReview, javax.swing.GroupLayout.PREFERRED_SIZE, 500, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -266,6 +268,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                         .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(btnLoginPrompt, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtReview, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cboRating, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -283,13 +286,16 @@ public class RoomDetailFrame extends javax.swing.JFrame {
         pnImageList.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 8));
         pnReviewList.setLayout(new BoxLayout(pnReviewList, BoxLayout.Y_AXIS));
         txtReview.setText("");
-        btnUpdate.setText("Edit room");
-        btnDelete.setText("Delete room");
-        jButton1.setText("Toggle availability");
+        btnLoginPrompt.setText("Đăng nhập để đánh giá");
+        btnUpdate.setText("Sửa bài");
+        btnDelete.setText("Xóa bài");
+        jButton1.setText("Đổi còn/hết");
     }
 
     private void wireEvents() {
         btnSubmit.addActionListener(event -> submitReview());
+        btnLoginPrompt.addActionListener(event ->
+            javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng đăng nhập để đánh giá."));
         btnUpdate.addActionListener(event -> openUpdateDialog());
         btnDelete.addActionListener(event -> deleteRoom());
         jButton1.addActionListener(event -> toggleAvailability());
@@ -299,7 +305,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
         try {
             currentDetail = roomBLL.getRoomDetail(roomId);
             if (currentDetail == null) {
-                ViewSupport.showInfo(this, "Room not found.");
+                ViewSupport.showInfo(this, "Không tìm thấy phòng.");
                 dispose();
                 return;
             }
@@ -375,7 +381,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     private void renderReviews() {
         pnReviewList.removeAll();
         if (currentDetail.getReviews() == null || currentDetail.getReviews().isEmpty()) {
-            pnReviewList.add(new JLabel("No reviews."));
+            pnReviewList.add(new JLabel("Chưa có đánh giá."));
         } else {
             for (DTOs.ReviewDTO review : currentDetail.getReviews()) {
                 pnReviewList.add(new ReviewPanel(review));
@@ -387,10 +393,12 @@ public class RoomDetailFrame extends javax.swing.JFrame {
 
     private void configureByRole() {
         Role role = SessionContext.getCurrentRole();
+        boolean guest = role == null;
         boolean tenant = role == Role.TENANT;
         boolean landlord = role == Role.LANDLORD;
         boolean admin = role == Role.ADMIN;
 
+        btnLoginPrompt.setVisible(guest);
         txtReview.setVisible(tenant);
         cboRating.setVisible(tenant);
         btnSubmit.setVisible(tenant);
@@ -423,7 +431,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     }
 
     private void deleteRoom() {
-        if (!ViewSupport.confirm(this, "Delete this room?")) {
+        if (!ViewSupport.confirm(this, "Xóa phòng này?")) {
             return;
         }
 
@@ -480,6 +488,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDelete;
+    private javax.swing.JButton btnLoginPrompt;
     private javax.swing.JButton btnSubmit;
     private javax.swing.JButton btnUpdate;
     private javax.swing.JComboBox<String> cboRating;

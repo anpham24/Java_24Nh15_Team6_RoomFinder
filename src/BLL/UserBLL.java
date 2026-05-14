@@ -20,7 +20,7 @@ public class UserBLL {
     public UserDTO getUserById(int userId) throws SQLException {
         UserDTO currentUser = SessionContext.requireLogin();
         if (currentUser.getRole() != Role.ADMIN && currentUser.getUserId() != userId) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return userDAL.findById(userId);
     }
@@ -44,7 +44,7 @@ public class UserBLL {
     public boolean deleteUser(int userId) throws SQLException {
         UserDTO currentUser = SessionContext.requireRole(Role.ADMIN);
         if (currentUser.getUserId() == userId) {
-            throw new IllegalArgumentException("Current admin user cannot be deleted");
+            throw new IllegalArgumentException("Người dùng quản trị viên hiện tại không thể bị xóa");
         }
 
         try (Connection connection = DBConnection.getConnection()) {
@@ -71,16 +71,16 @@ public class UserBLL {
 
     private void validateUser(UserDTO user) {
         if (user == null || user.getUserId() <= 0) {
-            throw new IllegalArgumentException("Valid user is required");
+            throw new IllegalArgumentException("Người dùng hợp lệ là bắt buộc");
         }
         if (user.getName() == null || user.getName().isBlank()) {
-            throw new IllegalArgumentException("Name is required");
+            throw new IllegalArgumentException("Họ tên là bắt buộc");
         }
         if (user.getPhoneNumber() == null || user.getPhoneNumber().isBlank()) {
-            throw new IllegalArgumentException("Phone number is required");
+            throw new IllegalArgumentException("Số điện thoại là bắt buộc");
         }
         if (user.getRole() == null) {
-            throw new IllegalArgumentException("Role is required");
+            throw new IllegalArgumentException("Vai trò là bắt buộc");
         }
     }
 }

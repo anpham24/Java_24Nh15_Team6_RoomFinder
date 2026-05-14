@@ -15,7 +15,7 @@ public class ReviewBLL {
 
     public List<ReviewDTO> getReviewsByRoomId(int roomId) throws SQLException {
         if (roomId <= 0) {
-            throw new IllegalArgumentException("Valid room id is required");
+            throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         return reviewDAL.findByRoomId(roomId);
     }
@@ -26,15 +26,15 @@ public class ReviewBLL {
 
         RoomDTO room = roomDAL.findById(roomId);
         if (room == null) {
-            throw new IllegalArgumentException("Room does not exist");
+            throw new IllegalArgumentException("Phòng không tồn tại");
         }
         if (!room.isStatus()) {
-            throw new SecurityException("Room is not approved");
+            throw new SecurityException("Phòng chưa được duyệt");
         }
 
         ReviewDTO existing = reviewDAL.findByTenantAndRoom(tenant.getUserId(), roomId);
         if (existing != null) {
-            throw new IllegalArgumentException("You already reviewed this room");
+            throw new IllegalArgumentException("Bạn đã đánh giá phòng này");
         }
 
         ReviewDTO review = new ReviewDTO();
@@ -48,7 +48,7 @@ public class ReviewBLL {
     public boolean updateReview(int reviewId, int rating, String comment) throws SQLException {
         UserDTO tenant = SessionContext.requireRole(Role.TENANT);
         if (reviewId <= 0) {
-            throw new IllegalArgumentException("Valid review id is required");
+            throw new IllegalArgumentException("ID đánh giá hợp lệ là bắt buộc");
         }
 
         ReviewDTO existing = reviewDAL.findById(reviewId);
@@ -56,7 +56,7 @@ public class ReviewBLL {
             return false;
         }
         if (existing.getTenantId() != tenant.getUserId()) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
 
         validateReview(existing.getRoomId(), rating, comment);
@@ -68,7 +68,7 @@ public class ReviewBLL {
     public boolean deleteReview(int reviewId) throws SQLException {
         UserDTO user = SessionContext.requireAnyRole(Role.ADMIN, Role.TENANT);
         if (reviewId <= 0) {
-            throw new IllegalArgumentException("Valid review id is required");
+            throw new IllegalArgumentException("ID đánh giá hợp lệ là bắt buộc");
         }
 
         ReviewDTO existing = reviewDAL.findById(reviewId);
@@ -76,7 +76,7 @@ public class ReviewBLL {
             return false;
         }
         if (user.getRole() != Role.ADMIN && existing.getTenantId() != user.getUserId()) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
 
         return reviewDAL.delete(reviewId);
@@ -84,13 +84,13 @@ public class ReviewBLL {
 
     private void validateReview(int roomId, int rating, String comment) {
         if (roomId <= 0) {
-            throw new IllegalArgumentException("Valid room id is required");
+            throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating must be from 1 to 5");
+            throw new IllegalArgumentException("Đánh giá phải từ 1 đến 5");
         }
         if (comment == null || comment.isBlank()) {
-            throw new IllegalArgumentException("Review comment is required");
+            throw new IllegalArgumentException("Bình luận đánh giá là bắt buộc");
         }
     }
 }

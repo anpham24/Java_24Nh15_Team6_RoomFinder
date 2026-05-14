@@ -27,7 +27,6 @@ public class RoomBLL {
     private final ReviewDAL reviewDAL = new ReviewDAL();
 
     public List<RoomDTO> getAvailableRooms() throws SQLException {
-        SessionContext.requireRole(Role.TENANT);
         RoomSearchCriteriaDTO criteria = new RoomSearchCriteriaDTO();
         criteria.setStatus(Boolean.TRUE);
         criteria.setAvailability(Boolean.TRUE);
@@ -36,7 +35,6 @@ public class RoomBLL {
     }
 
     public List<RoomDTO> searchAvailableRooms(RoomSearchCriteriaDTO criteria) throws SQLException {
-        SessionContext.requireRole(Role.TENANT);
         RoomSearchCriteriaDTO tenantCriteria = copyCriteria(criteria);
         tenantCriteria.setStatus(Boolean.TRUE);
         tenantCriteria.setAvailability(Boolean.TRUE);
@@ -63,10 +61,10 @@ public class RoomBLL {
 
     public RoomDetailDTO getRoomDetail(int roomId) throws SQLException {
         if (roomId <= 0) {
-            throw new IllegalArgumentException("Valid room id is required");
+            throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
 
-        UserDTO currentUser = SessionContext.requireLogin();
+        UserDTO currentUser = SessionContext.getCurrentUser();
         RoomDTO room = roomDAL.findById(roomId);
         if (room == null) {
             return null;
@@ -114,7 +112,7 @@ public class RoomBLL {
         UserDTO landlord = SessionContext.requireRole(Role.LANDLORD);
         RoomDTO room = requireRoom(detail);
         if (room.getRoomId() <= 0) {
-            throw new IllegalArgumentException("Valid room id is required");
+            throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         validateRoom(room);
 
@@ -123,7 +121,7 @@ public class RoomBLL {
             return false;
         }
         if (existing.getLandlordId() != landlord.getUserId()) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
 
         room.setLandlordId(existing.getLandlordId());
@@ -154,7 +152,7 @@ public class RoomBLL {
             return false;
         }
         if (user.getRole() != Role.ADMIN && room.getLandlordId() != user.getUserId()) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return deleteRoomCascade(roomId);
     }
@@ -166,7 +164,7 @@ public class RoomBLL {
             return false;
         }
         if (room.getLandlordId() != landlord.getUserId()) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return roomDAL.updateAvailability(roomId, availability);
     }
@@ -174,7 +172,7 @@ public class RoomBLL {
     public boolean approveRoom(int roomId) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
         if (roomId <= 0) {
-            throw new IllegalArgumentException("Valid room id is required");
+            throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         return roomDAL.approve(roomId);
     }
@@ -182,7 +180,7 @@ public class RoomBLL {
     public boolean declineRoom(int roomId) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
         if (roomId <= 0) {
-            throw new IllegalArgumentException("Valid room id is required");
+            throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         return deleteRoomCascade(roomId);
     }
@@ -207,6 +205,12 @@ public class RoomBLL {
     }
 
     private void ensureCanViewRoom(UserDTO user, RoomDTO room) {
+        if (user == null) {
+            if (room.isStatus() && room.isAvailability()) {
+                return;
+            }
+            throw new SecurityException("Quyền truy cập bị từ chối");
+        }
         if (user.getRole() == Role.ADMIN) {
             return;
         }
@@ -216,44 +220,44 @@ public class RoomBLL {
         if (user.getRole() == Role.TENANT && room.isStatus() && room.isAvailability()) {
             return;
         }
-        throw new SecurityException("Permission denied");
+        throw new SecurityException("Quyền truy cập bị từ chối");
     }
 
     private RoomDTO requireRoom(RoomDetailDTO detail) {
         if (detail == null || detail.getRoom() == null) {
-            throw new IllegalArgumentException("Room data is required");
+            throw new IllegalArgumentException("Dữ liệu phòng là bắt buộc");
         }
         return detail.getRoom();
     }
 
     private void validateRoom(RoomDTO room) {
         if (room.getTitle() == null || room.getTitle().isBlank()) {
-            throw new IllegalArgumentException("Room title is required");
+            throw new IllegalArgumentException("Tiêu đề phòng là bắt buộc");
         }
         if (room.getAddress() == null || room.getAddress().isBlank()) {
-            throw new IllegalArgumentException("Room address is required");
+            throw new IllegalArgumentException("Địa chỉ phòng là bắt buộc");
         }
         if (room.getDescription() == null || room.getDescription().isBlank()) {
-            throw new IllegalArgumentException("Room description is required");
+            throw new IllegalArgumentException("Mô tả phòng là bắt buộc");
         }
         if (room.getArea() <= 0) {
-            throw new IllegalArgumentException("Room area must be greater than 0");
+            throw new IllegalArgumentException("Diện tích phòng phải lớn hơn 0");
         }
         if (room.getPrice() <= 0) {
-            throw new IllegalArgumentException("Room price must be greater than 0");
+            throw new IllegalArgumentException("Giá phòng phải lớn hơn 0");
         }
     }
 
     private void validateSearchCriteria(RoomSearchCriteriaDTO criteria) {
         if (criteria.getMinPrice() != null && criteria.getMinPrice() < 0) {
-            throw new IllegalArgumentException("Minimum price cannot be negative");
+            throw new IllegalArgumentException("Giá tối thiểu không được âm");
         }
         if (criteria.getMaxPrice() != null && criteria.getMaxPrice() < 0) {
-            throw new IllegalArgumentException("Maximum price cannot be negative");
+            throw new IllegalArgumentException("Giá tối đa không được âm");
         }
         if (criteria.getMinPrice() != null && criteria.getMaxPrice() != null
                 && criteria.getMinPrice() > criteria.getMaxPrice()) {
-            throw new IllegalArgumentException("Minimum price cannot be greater than maximum price");
+            throw new IllegalArgumentException("Giá tối thiểu không được lớn hơn giá tối đa");
         }
     }
 

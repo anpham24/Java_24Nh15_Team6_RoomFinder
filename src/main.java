@@ -1,11 +1,11 @@
-import View.LoginFrame;
+import View.TenantMainFrame;
 import java.awt.EventQueue;
 import javax.swing.UIManager;
 
 public class main {
     public static void main(String[] args) {
         setLookAndFeel();
-        EventQueue.invokeLater(() -> new LoginFrame().setVisible(true));
+        EventQueue.invokeLater(() -> new TenantMainFrame().setVisible(true));
     }
 
     private static void setLookAndFeel() {

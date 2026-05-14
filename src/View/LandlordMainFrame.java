@@ -6,9 +6,11 @@ package View;
 
 import BLL.AuthBLL;
 import BLL.RoomBLL;
+import BLL.SessionContext;
 import DTOs.Role;
 import DTOs.RoomDTO;
 import DTOs.RoomDetailDTO;
+import DTOs.UserDTO;
 import java.awt.GridLayout;
 import java.util.List;
 import javax.swing.JLabel;
@@ -33,6 +35,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
         configureFrame();
         wireEvents();
         loadRooms();
+        updateGreeting();
     }
 
     /**
@@ -46,6 +49,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        lbGreeting = new javax.swing.JLabel();
         btnLogout = new javax.swing.JButton();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -70,6 +74,8 @@ public class LandlordMainFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
+                .addGap(18, 18, 18)
+                .addComponent(lbGreeting)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnLogout)
                 .addContainerGap())
@@ -80,6 +86,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
                 .addGap(15, 15, 15)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogout)
+                    .addComponent(lbGreeting)
                     .addComponent(jLabel1))
                 .addContainerGap(12, Short.MAX_VALUE))
         );
@@ -136,7 +143,12 @@ public class LandlordMainFrame extends javax.swing.JFrame {
 
     private void configureFrame() {
         pnRoomList.setLayout(new GridLayout(0, 3, 20, 20));
-        jButton1.setText("Add room");
+        jButton1.setText("Thêm phòng");
+    }
+
+    private void updateGreeting() {
+        UserDTO user = SessionContext.getCurrentUser();
+        lbGreeting.setText(user != null ? "Xin chào, " + user.getName() + "!" : "");
     }
 
     private void wireEvents() {
@@ -246,6 +258,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel lbGreeting;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;

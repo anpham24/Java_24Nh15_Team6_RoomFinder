@@ -181,7 +181,7 @@ public class RegisterFrame extends javax.swing.JFrame {
                     txtPhone.getText(),
                     selectedRole());
 
-            ViewSupport.showInfo(this, "Register successful. Please login.");
+            ViewSupport.showInfo(this, "Đăng ký thành công. Vui lòng đăng nhập.");
             ViewSupport.openFrame(this, new LoginFrame());
         } catch (Exception ex) {
             ViewSupport.showError(this, ex);

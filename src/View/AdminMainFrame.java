@@ -352,18 +352,18 @@ public class AdminMainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void configureFrame() {
-        cboStatus.setModel(new DefaultComboBoxModel<>(new String[]{"All", "Pending", "Approved"}));
-        cboRole.setModel(new DefaultComboBoxModel<>(new String[]{"All", "Landlord", "Tenant", "Admin"}));
+        cboStatus.setModel(new DefaultComboBoxModel<>(new String[]{"Tất cả", "Chờ duyệt", "Đã duyệt", "Bị từ chối"}));
+        cboRole.setModel(new DefaultComboBoxModel<>(new String[]{"Tất cả", "Chủ trọ", "Người thuê", "Quản trị viên"}));
 
         tbApproveRoom.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tbRoomManage.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tbUserManage.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tbAmenityManage.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-        tbApproveRoom.setModel(tableModel("ID", "Title", "Landlord", "Created", "Status"));
-        tbRoomManage.setModel(tableModel("ID", "Title", "Landlord", "Price", "Status", "Available"));
-        tbUserManage.setModel(tableModel("ID", "Username", "Name", "Phone", "Role"));
-        tbAmenityManage.setModel(tableModel("ID", "Name"));
+        tbApproveRoom.setModel(tableModel("ID", "Tiêu đề", "Chủ trọ", "Ngày đăng", "Trạng thái"));
+        tbRoomManage.setModel(tableModel("ID", "Tiêu đề", "Chủ trọ", "Giá thuê", "Trạng thái", "Còn phòng"));
+        tbUserManage.setModel(tableModel("ID", "Tên đăng nhập", "Họ tên", "Số điện thoại", "Vai trò"));
+        tbAmenityManage.setModel(tableModel("ID", "Tên tiện nghi"));
     }
 
     private void wireEvents() {
@@ -522,7 +522,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private void declineRoom() {
         try {
             int roomId = selectedId(tbApproveRoom);
-            if (!ViewSupport.confirm(this, "Decline and delete this room?")) {
+            if (!ViewSupport.confirm(this, "Từ chối và xóa phòng này?")) {
                 return;
             }
             roomBLL.declineRoom(roomId);
@@ -535,7 +535,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private void deleteRoom() {
         try {
             int roomId = selectedId(tbRoomManage);
-            if (!ViewSupport.confirm(this, "Delete this room?")) {
+            if (!ViewSupport.confirm(this, "Xóa phòng này?")) {
                 return;
             }
             roomBLL.deleteRoom(roomId);
@@ -548,7 +548,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private void deleteUser() {
         try {
             int userId = selectedId(tbUserManage);
-            if (!ViewSupport.confirm(this, "Delete this user?")) {
+            if (!ViewSupport.confirm(this, "Xóa người dùng này?")) {
                 return;
             }
             userBLL.deleteUser(userId);
@@ -559,7 +559,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     }
 
     private void addAmenity() {
-        String name = JOptionPane.showInputDialog(this, "Amenity name:");
+        String name = JOptionPane.showInputDialog(this, "Tên tiện nghi:");
         if (name == null || name.isBlank()) {
             return;
         }
@@ -577,7 +577,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
             int row = selectedModelRow(tbAmenityManage);
             int amenityId = Integer.parseInt(tbAmenityManage.getModel().getValueAt(row, 0).toString());
             String currentName = String.valueOf(tbAmenityManage.getModel().getValueAt(row, 1));
-            String name = JOptionPane.showInputDialog(this, "Amenity name:", currentName);
+            String name = JOptionPane.showInputDialog(this, "Tên tiện nghi:", currentName);
             if (name == null || name.isBlank()) {
                 return;
             }
@@ -592,7 +592,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private void deleteAmenity() {
         try {
             int amenityId = selectedId(tbAmenityManage);
-            if (!ViewSupport.confirm(this, "Delete this amenity?")) {
+            if (!ViewSupport.confirm(this, "Xóa tiện nghi này?")) {
                 return;
             }
             amenityBLL.deleteAmenity(amenityId);
@@ -610,7 +610,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private int selectedModelRow(JTable table) {
         int row = table.getSelectedRow();
         if (row < 0) {
-            throw new IllegalArgumentException("Please select a row.");
+            throw new IllegalArgumentException("Vui lòng chọn một hàng.");
         }
         return table.convertRowIndexToModel(row);
     }

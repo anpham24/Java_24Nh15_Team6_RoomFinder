@@ -31,7 +31,7 @@ public final class SessionContext {
 
     public static UserDTO requireLogin() {
         if (currentUser == null) {
-            throw new SecurityException("Login is required");
+            throw new SecurityException("Đăng nhập là bắt buộc");
         }
         return currentUser;
     }
@@ -39,7 +39,7 @@ public final class SessionContext {
     public static UserDTO requireRole(Role role) {
         UserDTO user = requireLogin();
         if (user.getRole() != role) {
-            throw new SecurityException("Permission denied");
+            throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return user;
     }
@@ -51,7 +51,7 @@ public final class SessionContext {
                 return user;
             }
         }
-        throw new SecurityException("Permission denied");
+        throw new SecurityException("Quyền truy cập bị từ chối");
     }
 
     public static boolean hasRole(Role role) {

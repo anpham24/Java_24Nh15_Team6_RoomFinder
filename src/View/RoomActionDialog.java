@@ -214,7 +214,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
         setLocationRelativeTo(parent);
         setResizable(false);
         pnImageList.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 8));
-        jLabel1.setText("Add room");
+        jLabel1.setText("Thêm phòng");
     }
 
     private void wireEvents() {
@@ -239,7 +239,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
         }
 
         RoomDTO room = currentDetail.getRoom();
-        jLabel1.setText("Edit room");
+        jLabel1.setText("Sửa phòng");
         txtTitle.setText(ViewSupport.safe(room.getTitle()));
         txtDescription.setText(ViewSupport.safe(room.getDescription()));
         txtAddress.setText(ViewSupport.safe(room.getAddress()));
@@ -263,7 +263,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
 
         Set<Integer> selectedAmenityIds = selectedAmenityIdsFromDetail();
         if (allAmenities.isEmpty()) {
-            pnAmenity.add(new JLabel("No amenities."));
+            pnAmenity.add(new JLabel("Không có tiện nghi"));
         } else {
             for (AmenityDTO amenity : allAmenities) {
                 JCheckBox checkBox = new JCheckBox(ViewSupport.safe(amenity.getName()));
@@ -309,12 +309,12 @@ public class RoomActionDialog extends javax.swing.JDialog {
     private void renderImages() {
         pnImageList.removeAll();
         if (imagePaths.isEmpty()) {
-            pnImageList.add(new JLabel("No images selected."));
+            pnImageList.add(new JLabel("Chưa chọn ảnh"));
         } else {
             for (String path : new ArrayList<>(imagePaths)) {
                 JLabel thumb = new JLabel();
                 thumb.setPreferredSize(new Dimension(90, 70));
-                thumb.setToolTipText("Double click to remove");
+                thumb.setToolTipText("Nhấp đôi để xóa");
                 thumb.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 ViewSupport.setScaledImage(thumb, path, 90, 70);
                 thumb.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -342,7 +342,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
                 roomBLL.updateRoom(detail);
             }
             saved = true;
-            ViewSupport.showInfo(this, "Room saved.");
+            ViewSupport.showInfo(this, "Phòng đã được lưu.");
             dispose();
         } catch (Exception ex) {
             ViewSupport.showError(this, ex);
@@ -386,7 +386,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
         try {
             return Double.parseDouble(field.getText().trim());
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException(fieldName + " must be a number");
+            throw new IllegalArgumentException(fieldName + " phải là số");
         }
     }
 

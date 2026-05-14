@@ -7,11 +7,13 @@ package View;
 import BLL.AmenityBLL;
 import BLL.AuthBLL;
 import BLL.RoomBLL;
+import BLL.SessionContext;
 import DTOs.AmenityDTO;
 import DTOs.Role;
 import DTOs.RoomDTO;
 import DTOs.RoomDetailDTO;
 import DTOs.RoomSearchCriteriaDTO;
+import DTOs.UserDTO;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -41,6 +43,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
         wireEvents();
         loadAmenities();
         loadRooms();
+        updateGreeting();
     }
 
     /**
@@ -55,6 +58,8 @@ public class TenantMainFrame extends javax.swing.JFrame {
         btgSort = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        lbGreeting = new javax.swing.JLabel();
+        btnLogin = new javax.swing.JButton();
         btnLogout = new javax.swing.JButton();
         pnSort = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
@@ -81,6 +86,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
         jLabel1.setText("Hệ thống tìm kiếm phòng trọ");
 
         btnLogout.setText("Đăng xuất");
+        btnLogin.setText("Đăng nhập");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -89,7 +95,11 @@ public class TenantMainFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
+                .addGap(18, 18, 18)
+                .addComponent(lbGreeting)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnLogin)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnLogout)
                 .addContainerGap())
         );
@@ -99,6 +109,8 @@ public class TenantMainFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogout)
+                    .addComponent(btnLogin)
+                    .addComponent(lbGreeting)
                     .addComponent(jLabel1))
                 .addContainerGap(9, Short.MAX_VALUE))
         );
@@ -220,9 +232,27 @@ public class TenantMainFrame extends javax.swing.JFrame {
 
     private void wireEvents() {
         btnLogout.addActionListener(event -> logout());
+        btnLogin.addActionListener(event -> openLogin());
         btnSearch.addActionListener(event -> searchRooms());
         btnApply.addActionListener(event -> searchRooms());
         txtSearch.addActionListener(event -> searchRooms());
+    }
+
+    private void updateGreeting() {
+        UserDTO user = SessionContext.getCurrentUser();
+        if (user != null) {
+            lbGreeting.setText("Xin chào, " + user.getName() + "!");
+            btnLogin.setVisible(false);
+            btnLogout.setVisible(true);
+        } else {
+            lbGreeting.setText("");
+            btnLogin.setVisible(true);
+            btnLogout.setVisible(false);
+        }
+    }
+
+    private void openLogin() {
+        ViewSupport.openFrame(this, new LoginFrame());
     }
 
     private void loadAmenities() {
@@ -260,8 +290,8 @@ public class TenantMainFrame extends javax.swing.JFrame {
     private RoomSearchCriteriaDTO buildCriteria() {
         RoomSearchCriteriaDTO criteria = new RoomSearchCriteriaDTO();
         criteria.setKeyword(txtSearch.getText());
-        criteria.setMinPrice(parseOptionalDouble(txtMinPrice.getText(), "Minimum price"));
-        criteria.setMaxPrice(parseOptionalDouble(txtMaxPrice.getText(), "Maximum price"));
+        criteria.setMinPrice(parseOptionalDouble(txtMinPrice.getText(), "Giá thấp nhất"));
+        criteria.setMaxPrice(parseOptionalDouble(txtMaxPrice.getText(), "Giá cao nhất"));
         criteria.setAmenityIds(selectedAmenityIds());
 
         if (rdoPrice.isSelected()) {
@@ -282,7 +312,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
         try {
             return Double.valueOf(value.trim());
         } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException(fieldName + " must be a number");
+            throw new IllegalArgumentException(fieldName + " phải là số");
         }
     }
 
@@ -299,11 +329,12 @@ public class TenantMainFrame extends javax.swing.JFrame {
     private void renderRooms(List<RoomDTO> rooms) throws Exception {
         pnRoomList.removeAll();
         if (rooms == null || rooms.isEmpty()) {
-            pnRoomList.add(new JLabel("No rooms found."));
+            pnRoomList.add(new JLabel("Không tìm thấy phòng."));
         } else {
+            Role currentRole = SessionContext.getCurrentRole();
             for (RoomDTO room : rooms) {
                 RoomDetailDTO detail = roomBLL.getRoomDetail(room.getRoomId());
-                pnRoomList.add(new RoomCardPanel(detail, Role.TENANT,
+                pnRoomList.add(new RoomCardPanel(detail, currentRole,
                         () -> openRoomDetail(room.getRoomId()), null, null, null));
             }
         }
@@ -317,7 +348,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
 
     private void logout() {
         authBLL.logout();
-        ViewSupport.openFrame(this, new LoginFrame());
+        ViewSupport.openFrame(this, new TenantMainFrame());
     }
 
     /**
@@ -348,7 +379,9 @@ public class TenantMainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btgSort;
     private javax.swing.JButton btnApply;
+    private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnLogout;
+    private javax.swing.JLabel lbGreeting;
     private javax.swing.JButton btnSearch;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
