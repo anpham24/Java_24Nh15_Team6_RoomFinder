@@ -1,0 +1,48 @@
+# ==========================================
+# 1. BỎ QUA CÁC FILE CODE ĐÃ BIÊN DỊCH (JAVA)
+# ==========================================
+*.class
+*.log
+*.ctxt
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# ==========================================
+# 2. BỎ QUA CÁC FILE RÁC CỦA NETBEANS (IDE CỦA BẠN)
+# ==========================================
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ==========================================
+# 3. BỎ QUA CÁC FILE RÁC CỦA ECLIPSE (IDE CỦA TEAM)
+# ==========================================
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+.settings/
+.classpath
+.project
+.recommenders
+
+# ==========================================
+# 4. BỎ QUA CÁC FILE RÁC CỦA INTELLIJ IDEA
+# ==========================================
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# ==========================================
+# 5. BỎ QUA CÁC FILE HỆ ĐIỀU HÀNH TỰ SINH RA
+# ==========================================
+.DS_Store
+Thumbs.db
