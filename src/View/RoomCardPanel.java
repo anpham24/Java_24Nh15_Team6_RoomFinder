@@ -4,6 +4,21 @@
  */
 package View;
 
+import DTOs.AmenityDTO;
+import DTOs.Role;
+import DTOs.RoomDTO;
+import DTOs.RoomDetailDTO;
+import DTOs.RoomImageDTO;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+
 /**
  *
  * @author anpha
@@ -15,6 +30,13 @@ public class RoomCardPanel extends javax.swing.JPanel {
      */
     public RoomCardPanel() {
         initComponents();
+    }
+
+    public RoomCardPanel(RoomDetailDTO detail, Role role, Runnable onOpenDetail,
+            Runnable onUpdate, Runnable onDelete, Runnable onToggleAvailability) {
+        this();
+        bindData(detail);
+        wireEvents(role, onOpenDetail, onUpdate, onDelete, onToggleAvailability);
     }
 
     /**
@@ -135,6 +157,94 @@ public class RoomCardPanel extends javax.swing.JPanel {
                 .addContainerGap(13, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void bindData(RoomDetailDTO detail) {
+        if (detail == null || detail.getRoom() == null) {
+            return;
+        }
+
+        RoomDTO room = detail.getRoom();
+        lbTitle.setText(ViewSupport.html(room.getTitle()));
+        lbPrice.setText(ViewSupport.money(room.getPrice()));
+        lbArea.setText(ViewSupport.area(room.getArea()));
+        lbAddress.setText(ViewSupport.html(room.getAddress()));
+        lbAvailability.setText(ViewSupport.availability(room.isAvailability()));
+        lbRating.setText(ViewSupport.rating(room.getAverageRating(), room.getReviewCount()));
+        lbStatus.setText(ViewSupport.status(room.isStatus()));
+        renderAmenities(detail.getAmenities());
+        renderThumbnail(detail.getImages());
+        setBorder(BorderFactory.createLineBorder(new java.awt.Color(220, 220, 220)));
+    }
+
+    private void renderAmenities(List<AmenityDTO> amenities) {
+        pnAmenity.removeAll();
+        if (amenities == null || amenities.isEmpty()) {
+            pnAmenity.add(new JLabel("-"));
+        } else {
+            int count = Math.min(amenities.size(), 3);
+            for (int i = 0; i < count; i++) {
+                pnAmenity.add(new JLabel(ViewSupport.safe(amenities.get(i).getName())));
+            }
+        }
+        pnAmenity.revalidate();
+        pnAmenity.repaint();
+    }
+
+    private void renderThumbnail(List<RoomImageDTO> images) {
+        String imagePath = null;
+        if (images != null && !images.isEmpty()) {
+            imagePath = images.get(0).getImagePath();
+        }
+        ViewSupport.setScaledImage(lbThumb, imagePath, 380, 200);
+    }
+
+    private void wireEvents(Role role, Runnable onOpenDetail,
+            Runnable onUpdate, Runnable onDelete, Runnable onToggleAvailability) {
+        MouseAdapter openDetailMouseListener = new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent event) {
+                if (event.getClickCount() >= 2 && onOpenDetail != null) {
+                    onOpenDetail.run();
+                }
+            }
+        };
+        registerOpenDetailListener(this, openDetailMouseListener);
+
+        btnUpdate.setVisible(onUpdate != null);
+        btnDelete.setVisible(onDelete != null);
+        jButton1.setVisible(onOpenDetail != null || onToggleAvailability != null);
+
+        if (onUpdate != null) {
+            btnUpdate.addActionListener(event -> onUpdate.run());
+        }
+        if (onDelete != null) {
+            btnDelete.addActionListener(event -> onDelete.run());
+        }
+
+        if (role == Role.TENANT && onOpenDetail != null) {
+            jButton1.setText("Detail");
+            jButton1.addActionListener(event -> onOpenDetail.run());
+        } else if (onToggleAvailability != null) {
+            jButton1.setText("Toggle");
+            jButton1.addActionListener(event -> onToggleAvailability.run());
+        } else {
+            jButton1.setVisible(false);
+        }
+    }
+
+    private void registerOpenDetailListener(Component component, MouseAdapter listener) {
+        if (component instanceof JButton) {
+            return;
+        }
+
+        component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        component.addMouseListener(listener);
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                registerOpenDetailListener(child, listener);
+            }
+        }
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

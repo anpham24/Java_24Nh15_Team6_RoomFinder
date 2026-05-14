@@ -4,6 +4,24 @@
  */
 package View;
 
+import BLL.ReviewBLL;
+import BLL.RoomBLL;
+import BLL.SessionContext;
+import DTOs.AmenityDTO;
+import DTOs.Role;
+import DTOs.RoomDTO;
+import DTOs.RoomDetailDTO;
+import DTOs.RoomImageDTO;
+import DTOs.UserDTO;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+
 /**
  *
  * @author anpha
@@ -11,14 +29,24 @@ package View;
 public class RoomDetailFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RoomDetailFrame.class.getName());
+    private final RoomBLL roomBLL = new RoomBLL();
+    private final ReviewBLL reviewBLL = new ReviewBLL();
+    private RoomDetailDTO currentDetail;
+    private Runnable onChanged;
 
     /**
      * Creates new form RoomDetailFrame
      */
     public RoomDetailFrame() {
         initComponents();
-        this.setLocationRelativeTo(null);
-        this.setResizable(false);
+        configureFrame();
+        wireEvents();
+    }
+
+    public RoomDetailFrame(int roomId, Runnable onChanged) {
+        this();
+        this.onChanged = onChanged;
+        loadDetail(roomId);
     }
 
     /**
@@ -247,6 +275,183 @@ public class RoomDetailFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void configureFrame() {
+        setLocationRelativeTo(null);
+        setResizable(false);
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        pnImageList.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        pnReviewList.setLayout(new BoxLayout(pnReviewList, BoxLayout.Y_AXIS));
+        txtReview.setText("");
+        btnUpdate.setText("Edit room");
+        btnDelete.setText("Delete room");
+        jButton1.setText("Toggle availability");
+    }
+
+    private void wireEvents() {
+        btnSubmit.addActionListener(event -> submitReview());
+        btnUpdate.addActionListener(event -> openUpdateDialog());
+        btnDelete.addActionListener(event -> deleteRoom());
+        jButton1.addActionListener(event -> toggleAvailability());
+    }
+
+    private void loadDetail(int roomId) {
+        try {
+            currentDetail = roomBLL.getRoomDetail(roomId);
+            if (currentDetail == null) {
+                ViewSupport.showInfo(this, "Room not found.");
+                dispose();
+                return;
+            }
+            bindDetail();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+            dispose();
+        }
+    }
+
+    private void bindDetail() {
+        RoomDTO room = currentDetail.getRoom();
+        lbTitle.setText(ViewSupport.html(room.getTitle()));
+        lbAvailability.setText(ViewSupport.availability(room.isAvailability()));
+        lbRating.setText(ViewSupport.rating(room.getAverageRating(), room.getReviewCount()));
+        lbStatus.setText(ViewSupport.status(room.isStatus()));
+        lbDescription.setText(ViewSupport.html(room.getDescription()));
+        lbAddress.setText(ViewSupport.html(room.getAddress()));
+        lbPrice.setText(ViewSupport.money(room.getPrice()));
+        lbArea.setText(ViewSupport.area(room.getArea()));
+        bindLandlord(currentDetail.getLandlord());
+        renderAmenities(currentDetail.getAmenities());
+        renderImages(currentDetail.getImages());
+        renderReviews();
+        configureByRole();
+    }
+
+    private void bindLandlord(UserDTO landlord) {
+        if (landlord == null) {
+            lbPhone.setText("-");
+            return;
+        }
+        lbPhone.setText(ViewSupport.safe(landlord.getName()) + " - " + ViewSupport.safe(landlord.getPhoneNumber()));
+    }
+
+    private void renderAmenities(List<AmenityDTO> amenities) {
+        pnAmenity.removeAll();
+        if (amenities == null || amenities.isEmpty()) {
+            pnAmenity.add(new JLabel("-"));
+        } else {
+            for (AmenityDTO amenity : amenities) {
+                pnAmenity.add(new JLabel(ViewSupport.safe(amenity.getName())));
+            }
+        }
+        pnAmenity.revalidate();
+        pnAmenity.repaint();
+    }
+
+    private void renderImages(List<RoomImageDTO> images) {
+        pnImageList.removeAll();
+        if (images == null || images.isEmpty()) {
+            ViewSupport.setScaledImage(lbMainImage, null, 550, 560);
+        } else {
+            ViewSupport.setScaledImage(lbMainImage, images.get(0).getImagePath(), 550, 560);
+            for (RoomImageDTO image : images) {
+                JLabel thumb = new JLabel();
+                thumb.setPreferredSize(new Dimension(90, 70));
+                thumb.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                ViewSupport.setScaledImage(thumb, image.getImagePath(), 90, 70);
+                thumb.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent event) {
+                        ViewSupport.setScaledImage(lbMainImage, image.getImagePath(), 550, 560);
+                    }
+                });
+                pnImageList.add(thumb);
+            }
+        }
+        pnImageList.revalidate();
+        pnImageList.repaint();
+    }
+
+    private void renderReviews() {
+        pnReviewList.removeAll();
+        if (currentDetail.getReviews() == null || currentDetail.getReviews().isEmpty()) {
+            pnReviewList.add(new JLabel("No reviews."));
+        } else {
+            for (DTOs.ReviewDTO review : currentDetail.getReviews()) {
+                pnReviewList.add(new ReviewPanel(review));
+            }
+        }
+        pnReviewList.revalidate();
+        pnReviewList.repaint();
+    }
+
+    private void configureByRole() {
+        Role role = SessionContext.getCurrentRole();
+        boolean tenant = role == Role.TENANT;
+        boolean landlord = role == Role.LANDLORD;
+        boolean admin = role == Role.ADMIN;
+
+        txtReview.setVisible(tenant);
+        cboRating.setVisible(tenant);
+        btnSubmit.setVisible(tenant);
+        jLabel5.setVisible(tenant);
+
+        btnUpdate.setVisible(landlord);
+        jButton1.setVisible(landlord);
+        btnDelete.setVisible(landlord || admin);
+    }
+
+    private void submitReview() {
+        try {
+            int rating = Integer.parseInt(String.valueOf(cboRating.getSelectedItem()));
+            reviewBLL.addReview(currentDetail.getRoom().getRoomId(), rating, txtReview.getText());
+            txtReview.setText("");
+            notifyChanged();
+            loadDetail(currentDetail.getRoom().getRoomId());
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void openUpdateDialog() {
+        RoomActionDialog dialog = new RoomActionDialog(this, currentDetail);
+        dialog.setVisible(true);
+        if (dialog.isSaved()) {
+            notifyChanged();
+            loadDetail(currentDetail.getRoom().getRoomId());
+        }
+    }
+
+    private void deleteRoom() {
+        if (!ViewSupport.confirm(this, "Delete this room?")) {
+            return;
+        }
+
+        try {
+            roomBLL.deleteRoom(currentDetail.getRoom().getRoomId());
+            notifyChanged();
+            dispose();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void toggleAvailability() {
+        try {
+            RoomDTO room = currentDetail.getRoom();
+            roomBLL.updateAvailability(room.getRoomId(), !room.isAvailability());
+            notifyChanged();
+            loadDetail(room.getRoomId());
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void notifyChanged() {
+        if (onChanged != null) {
+            onChanged.run();
+        }
+    }
 
     /**
      * @param args the command line arguments

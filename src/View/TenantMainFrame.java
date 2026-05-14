@@ -4,6 +4,21 @@
  */
 package View;
 
+import BLL.AmenityBLL;
+import BLL.AuthBLL;
+import BLL.RoomBLL;
+import DTOs.AmenityDTO;
+import DTOs.Role;
+import DTOs.RoomDTO;
+import DTOs.RoomDetailDTO;
+import DTOs.RoomSearchCriteriaDTO;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import javax.swing.JCheckBox;
+import javax.swing.JLabel;
+
 /**
  *
  * @author anpha
@@ -11,6 +26,10 @@ package View;
 public class TenantMainFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TenantMainFrame.class.getName());
+    private final RoomBLL roomBLL = new RoomBLL();
+    private final AmenityBLL amenityBLL = new AmenityBLL();
+    private final AuthBLL authBLL = new AuthBLL();
+    private final Map<JCheckBox, AmenityDTO> amenityByCheckBox = new LinkedHashMap<>();
 
     /**
      * Creates new form TenantMainFrame
@@ -19,6 +38,9 @@ public class TenantMainFrame extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        wireEvents();
+        loadAmenities();
+        loadRooms();
     }
 
     /**
@@ -195,6 +217,108 @@ public class TenantMainFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void wireEvents() {
+        btnLogout.addActionListener(event -> logout());
+        btnSearch.addActionListener(event -> searchRooms());
+        btnApply.addActionListener(event -> searchRooms());
+        txtSearch.addActionListener(event -> searchRooms());
+    }
+
+    private void loadAmenities() {
+        try {
+            pnAmenity.removeAll();
+            amenityByCheckBox.clear();
+            for (AmenityDTO amenity : amenityBLL.getAllAmenities()) {
+                JCheckBox checkBox = new JCheckBox(ViewSupport.safe(amenity.getName()));
+                amenityByCheckBox.put(checkBox, amenity);
+                pnAmenity.add(checkBox);
+            }
+            pnAmenity.revalidate();
+            pnAmenity.repaint();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void loadRooms() {
+        try {
+            renderRooms(roomBLL.getAvailableRooms());
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void searchRooms() {
+        try {
+            renderRooms(roomBLL.searchAvailableRooms(buildCriteria()));
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private RoomSearchCriteriaDTO buildCriteria() {
+        RoomSearchCriteriaDTO criteria = new RoomSearchCriteriaDTO();
+        criteria.setKeyword(txtSearch.getText());
+        criteria.setMinPrice(parseOptionalDouble(txtMinPrice.getText(), "Minimum price"));
+        criteria.setMaxPrice(parseOptionalDouble(txtMaxPrice.getText(), "Maximum price"));
+        criteria.setAmenityIds(selectedAmenityIds());
+
+        if (rdoPrice.isSelected()) {
+            criteria.setSortBy(RoomSearchCriteriaDTO.SortBy.PRICE_ASC);
+        } else if (rdoReview.isSelected()) {
+            criteria.setSortBy(RoomSearchCriteriaDTO.SortBy.RATING_DESC);
+        } else {
+            criteria.setSortBy(RoomSearchCriteriaDTO.SortBy.CREATED_AT_DESC);
+        }
+        return criteria;
+    }
+
+    private Double parseOptionalDouble(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        try {
+            return Double.valueOf(value.trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(fieldName + " must be a number");
+        }
+    }
+
+    private List<Integer> selectedAmenityIds() {
+        List<Integer> ids = new ArrayList<>();
+        for (Map.Entry<JCheckBox, AmenityDTO> entry : amenityByCheckBox.entrySet()) {
+            if (entry.getKey().isSelected()) {
+                ids.add(entry.getValue().getAmenityId());
+            }
+        }
+        return ids;
+    }
+
+    private void renderRooms(List<RoomDTO> rooms) throws Exception {
+        pnRoomList.removeAll();
+        if (rooms == null || rooms.isEmpty()) {
+            pnRoomList.add(new JLabel("No rooms found."));
+        } else {
+            for (RoomDTO room : rooms) {
+                RoomDetailDTO detail = roomBLL.getRoomDetail(room.getRoomId());
+                pnRoomList.add(new RoomCardPanel(detail, Role.TENANT,
+                        () -> openRoomDetail(room.getRoomId()), null, null, null));
+            }
+        }
+        pnRoomList.revalidate();
+        pnRoomList.repaint();
+    }
+
+    private void openRoomDetail(int roomId) {
+        new RoomDetailFrame(roomId, this::searchRooms).setVisible(true);
+    }
+
+    private void logout() {
+        authBLL.logout();
+        ViewSupport.openFrame(this, new LoginFrame());
+    }
 
     /**
      * @param args the command line arguments

@@ -4,6 +4,28 @@
  */
 package View;
 
+import BLL.AmenityBLL;
+import BLL.RoomBLL;
+import DTOs.AmenityDTO;
+import DTOs.RoomDTO;
+import DTOs.RoomDetailDTO;
+import DTOs.RoomImageDTO;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
+
 /**
  *
  * @author anpha
@@ -11,6 +33,13 @@ package View;
 public class RoomActionDialog extends javax.swing.JDialog {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RoomActionDialog.class.getName());
+    private final RoomBLL roomBLL = new RoomBLL();
+    private final AmenityBLL amenityBLL = new AmenityBLL();
+    private final Map<JCheckBox, AmenityDTO> amenityByCheckBox = new LinkedHashMap<>();
+    private final List<AmenityDTO> allAmenities = new ArrayList<>();
+    private final List<String> imagePaths = new ArrayList<>();
+    private RoomDetailDTO currentDetail;
+    private boolean saved;
 
     /**
      * Creates new form RoomActionDialog
@@ -18,7 +47,15 @@ public class RoomActionDialog extends javax.swing.JDialog {
     public RoomActionDialog(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
         initComponents();
-        this.setLocationRelativeTo(null);
+        configureDialog(parent);
+        wireEvents();
+        loadAmenities();
+    }
+
+    public RoomActionDialog(java.awt.Frame parent, RoomDetailDTO detail) {
+        this(parent, true);
+        currentDetail = detail;
+        populateDetail();
     }
 
     /**
@@ -168,6 +205,190 @@ public class RoomActionDialog extends javax.swing.JDialog {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    public boolean isSaved() {
+        return saved;
+    }
+
+    private void configureDialog(java.awt.Frame parent) {
+        setLocationRelativeTo(parent);
+        setResizable(false);
+        pnImageList.setLayout(new FlowLayout(FlowLayout.LEFT, 8, 8));
+        jLabel1.setText("Add room");
+    }
+
+    private void wireEvents() {
+        btnExit.addActionListener(event -> dispose());
+        btnSave.addActionListener(event -> saveRoom());
+        btnBrowse.addActionListener(event -> browseImages());
+    }
+
+    private void loadAmenities() {
+        try {
+            allAmenities.clear();
+            allAmenities.addAll(amenityBLL.getAllAmenities());
+            renderAmenities();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void populateDetail() {
+        if (currentDetail == null || currentDetail.getRoom() == null) {
+            return;
+        }
+
+        RoomDTO room = currentDetail.getRoom();
+        jLabel1.setText("Edit room");
+        txtTitle.setText(ViewSupport.safe(room.getTitle()));
+        txtDescription.setText(ViewSupport.safe(room.getDescription()));
+        txtAddress.setText(ViewSupport.safe(room.getAddress()));
+        txtPrice.setText(String.valueOf(room.getPrice()));
+        txtArea.setText(String.valueOf(room.getArea()));
+
+        imagePaths.clear();
+        for (RoomImageDTO image : currentDetail.getImages()) {
+            if (image.getImagePath() != null && !image.getImagePath().isBlank()) {
+                imagePaths.add(image.getImagePath());
+            }
+        }
+
+        renderAmenities();
+        renderImages();
+    }
+
+    private void renderAmenities() {
+        pnAmenity.removeAll();
+        amenityByCheckBox.clear();
+
+        Set<Integer> selectedAmenityIds = selectedAmenityIdsFromDetail();
+        if (allAmenities.isEmpty()) {
+            pnAmenity.add(new JLabel("No amenities."));
+        } else {
+            for (AmenityDTO amenity : allAmenities) {
+                JCheckBox checkBox = new JCheckBox(ViewSupport.safe(amenity.getName()));
+                checkBox.setSelected(selectedAmenityIds.contains(amenity.getAmenityId()));
+                amenityByCheckBox.put(checkBox, amenity);
+                pnAmenity.add(checkBox);
+            }
+        }
+
+        pnAmenity.revalidate();
+        pnAmenity.repaint();
+    }
+
+    private Set<Integer> selectedAmenityIdsFromDetail() {
+        Set<Integer> ids = new HashSet<>();
+        if (currentDetail == null || currentDetail.getAmenities() == null) {
+            return ids;
+        }
+
+        for (AmenityDTO amenity : currentDetail.getAmenities()) {
+            ids.add(amenity.getAmenityId());
+        }
+        return ids;
+    }
+
+    private void browseImages() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setMultiSelectionEnabled(true);
+        chooser.setFileFilter(new FileNameExtensionFilter("Images", "jpg", "jpeg", "png", "gif", "bmp"));
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        for (File file : chooser.getSelectedFiles()) {
+            String path = file.getAbsolutePath();
+            if (!imagePaths.contains(path)) {
+                imagePaths.add(path);
+            }
+        }
+        renderImages();
+    }
+
+    private void renderImages() {
+        pnImageList.removeAll();
+        if (imagePaths.isEmpty()) {
+            pnImageList.add(new JLabel("No images selected."));
+        } else {
+            for (String path : new ArrayList<>(imagePaths)) {
+                JLabel thumb = new JLabel();
+                thumb.setPreferredSize(new Dimension(90, 70));
+                thumb.setToolTipText("Double click to remove");
+                thumb.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                ViewSupport.setScaledImage(thumb, path, 90, 70);
+                thumb.addMouseListener(new java.awt.event.MouseAdapter() {
+                    @Override
+                    public void mouseClicked(java.awt.event.MouseEvent event) {
+                        if (event.getClickCount() >= 2) {
+                            imagePaths.remove(path);
+                            renderImages();
+                        }
+                    }
+                });
+                pnImageList.add(thumb);
+            }
+        }
+        pnImageList.revalidate();
+        pnImageList.repaint();
+    }
+
+    private void saveRoom() {
+        try {
+            RoomDetailDTO detail = buildRoomDetail();
+            if (currentDetail == null) {
+                roomBLL.createRoom(detail);
+            } else {
+                roomBLL.updateRoom(detail);
+            }
+            saved = true;
+            ViewSupport.showInfo(this, "Room saved.");
+            dispose();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private RoomDetailDTO buildRoomDetail() {
+        RoomDTO room = currentDetail == null ? new RoomDTO() : currentDetail.getRoom();
+        room.setTitle(txtTitle.getText().trim());
+        room.setDescription(txtDescription.getText().trim());
+        room.setAddress(txtAddress.getText().trim());
+        room.setPrice(parseDouble(txtPrice, "Price"));
+        room.setArea(parseDouble(txtArea, "Area"));
+
+        RoomDetailDTO detail = new RoomDetailDTO();
+        detail.setRoom(room);
+        detail.setAmenities(selectedAmenities());
+        detail.setImages(selectedImages(room.getRoomId()));
+        return detail;
+    }
+
+    private List<AmenityDTO> selectedAmenities() {
+        List<AmenityDTO> amenities = new ArrayList<>();
+        for (Map.Entry<JCheckBox, AmenityDTO> entry : amenityByCheckBox.entrySet()) {
+            if (entry.getKey().isSelected()) {
+                amenities.add(entry.getValue());
+            }
+        }
+        return amenities;
+    }
+
+    private List<RoomImageDTO> selectedImages(int roomId) {
+        List<RoomImageDTO> images = new ArrayList<>();
+        for (String imagePath : imagePaths) {
+            images.add(new RoomImageDTO(0, roomId, imagePath));
+        }
+        return images;
+    }
+
+    private double parseDouble(JTextField field, String fieldName) {
+        try {
+            return Double.parseDouble(field.getText().trim());
+        } catch (NumberFormatException ex) {
+            throw new IllegalArgumentException(fieldName + " must be a number");
+        }
+    }
 
     /**
      * @param args the command line arguments

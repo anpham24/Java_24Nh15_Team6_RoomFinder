@@ -4,6 +4,15 @@
  */
 package View;
 
+import BLL.AuthBLL;
+import BLL.RoomBLL;
+import DTOs.Role;
+import DTOs.RoomDTO;
+import DTOs.RoomDetailDTO;
+import java.awt.GridLayout;
+import java.util.List;
+import javax.swing.JLabel;
+
 /**
  *
  * @author anpha
@@ -11,6 +20,8 @@ package View;
 public class LandlordMainFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LandlordMainFrame.class.getName());
+    private final RoomBLL roomBLL = new RoomBLL();
+    private final AuthBLL authBLL = new AuthBLL();
 
     /**
      * Creates new form LandlordMainFrame
@@ -19,6 +30,9 @@ public class LandlordMainFrame extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        configureFrame();
+        wireEvents();
+        loadRooms();
     }
 
     /**
@@ -119,6 +133,89 @@ public class LandlordMainFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void configureFrame() {
+        pnRoomList.setLayout(new GridLayout(0, 3, 20, 20));
+        jButton1.setText("Add room");
+    }
+
+    private void wireEvents() {
+        btnLogout.addActionListener(event -> logout());
+        jButton1.addActionListener(event -> openCreateDialog());
+    }
+
+    private void loadRooms() {
+        try {
+            renderRooms(roomBLL.getRoomsForCurrentLandlord());
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void renderRooms(List<RoomDTO> rooms) throws Exception {
+        pnRoomList.removeAll();
+        if (rooms == null || rooms.isEmpty()) {
+            pnRoomList.add(new JLabel("No rooms found."));
+        } else {
+            for (RoomDTO room : rooms) {
+                RoomDetailDTO detail = roomBLL.getRoomDetail(room.getRoomId());
+                pnRoomList.add(new RoomCardPanel(detail, Role.LANDLORD,
+                        () -> openRoomDetail(room.getRoomId()),
+                        () -> openUpdateDialog(detail),
+                        () -> deleteRoom(room),
+                        () -> toggleAvailability(room)));
+            }
+        }
+        pnRoomList.revalidate();
+        pnRoomList.repaint();
+    }
+
+    private void openRoomDetail(int roomId) {
+        new RoomDetailFrame(roomId, this::loadRooms).setVisible(true);
+    }
+
+    private void openCreateDialog() {
+        RoomActionDialog dialog = new RoomActionDialog(this, true);
+        dialog.setVisible(true);
+        if (dialog.isSaved()) {
+            loadRooms();
+        }
+    }
+
+    private void openUpdateDialog(RoomDetailDTO detail) {
+        RoomActionDialog dialog = new RoomActionDialog(this, detail);
+        dialog.setVisible(true);
+        if (dialog.isSaved()) {
+            loadRooms();
+        }
+    }
+
+    private void deleteRoom(RoomDTO room) {
+        if (!ViewSupport.confirm(this, "Delete this room?")) {
+            return;
+        }
+
+        try {
+            roomBLL.deleteRoom(room.getRoomId());
+            loadRooms();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void toggleAvailability(RoomDTO room) {
+        try {
+            roomBLL.updateAvailability(room.getRoomId(), !room.isAvailability());
+            loadRooms();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void logout() {
+        authBLL.logout();
+        ViewSupport.openFrame(this, new LoginFrame());
+    }
 
     /**
      * @param args the command line arguments

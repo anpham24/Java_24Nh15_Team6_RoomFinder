@@ -4,6 +4,21 @@
  */
 package View;
 
+import BLL.AmenityBLL;
+import BLL.AuthBLL;
+import BLL.RoomBLL;
+import BLL.UserBLL;
+import DTOs.AmenityDTO;
+import DTOs.Role;
+import DTOs.RoomDTO;
+import DTOs.RoomSearchCriteriaDTO;
+import DTOs.UserDTO;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.ListSelectionModel;
+import javax.swing.table.DefaultTableModel;
+
 /**
  *
  * @author anpha
@@ -11,6 +26,10 @@ package View;
 public class AdminMainFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AdminMainFrame.class.getName());
+    private final RoomBLL roomBLL = new RoomBLL();
+    private final UserBLL userBLL = new UserBLL();
+    private final AmenityBLL amenityBLL = new AmenityBLL();
+    private final AuthBLL authBLL = new AuthBLL();
 
     /**
      * Creates new form AdminMainFrame
@@ -19,6 +38,9 @@ public class AdminMainFrame extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        configureFrame();
+        wireEvents();
+        loadAllData();
     }
 
     /**
@@ -328,6 +350,275 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void configureFrame() {
+        cboStatus.setModel(new DefaultComboBoxModel<>(new String[]{"All", "Pending", "Approved"}));
+        cboRole.setModel(new DefaultComboBoxModel<>(new String[]{"All", "Landlord", "Tenant", "Admin"}));
+
+        tbApproveRoom.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tbRoomManage.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tbUserManage.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tbAmenityManage.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        tbApproveRoom.setModel(tableModel("ID", "Title", "Landlord", "Created", "Status"));
+        tbRoomManage.setModel(tableModel("ID", "Title", "Landlord", "Price", "Status", "Available"));
+        tbUserManage.setModel(tableModel("ID", "Username", "Name", "Phone", "Role"));
+        tbAmenityManage.setModel(tableModel("ID", "Name"));
+    }
+
+    private void wireEvents() {
+        btnLogout.addActionListener(event -> logout());
+
+        btnRoomDetail_tab1.addActionListener(event -> openSelectedRoom(tbApproveRoom));
+        btnRoomDetail_tab2.addActionListener(event -> openSelectedRoom(tbRoomManage));
+        btnApproveRoom.addActionListener(event -> approveRoom());
+        btnDeclineRoom.addActionListener(event -> declineRoom());
+        btnDeleteRoom.addActionListener(event -> deleteRoom());
+        btnSearchRoom.addActionListener(event -> loadManagedRooms());
+        txtSearchRoom.addActionListener(event -> loadManagedRooms());
+
+        btnSearchUser.addActionListener(event -> loadUsers());
+        txtSearchUser.addActionListener(event -> loadUsers());
+        btnDeleteUser.addActionListener(event -> deleteUser());
+
+        btnAddAmenity.addActionListener(event -> addAmenity());
+        btnUpdateAmenity.addActionListener(event -> updateAmenity());
+        btnDeleteAmenity.addActionListener(event -> deleteAmenity());
+    }
+
+    private DefaultTableModel tableModel(String... columns) {
+        return new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    }
+
+    private void loadAllData() {
+        loadPendingRooms();
+        loadManagedRooms();
+        loadUsers();
+        loadAmenities();
+    }
+
+    private void loadPendingRooms() {
+        try {
+            DefaultTableModel model = (DefaultTableModel) tbApproveRoom.getModel();
+            model.setRowCount(0);
+            for (RoomDTO room : roomBLL.getPendingRooms()) {
+                model.addRow(new Object[]{
+                    room.getRoomId(),
+                    room.getTitle(),
+                    landlordName(room.getLandlordId()),
+                    ViewSupport.dateTime(room.getCreatedAt()),
+                    ViewSupport.status(room.isStatus())
+                });
+            }
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void loadManagedRooms() {
+        try {
+            DefaultTableModel model = (DefaultTableModel) tbRoomManage.getModel();
+            model.setRowCount(0);
+            for (RoomDTO room : roomBLL.searchRoomsForAdmin(buildRoomCriteria())) {
+                model.addRow(new Object[]{
+                    room.getRoomId(),
+                    room.getTitle(),
+                    landlordName(room.getLandlordId()),
+                    ViewSupport.money(room.getPrice()),
+                    ViewSupport.status(room.isStatus()),
+                    ViewSupport.availability(room.isAvailability())
+                });
+            }
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private RoomSearchCriteriaDTO buildRoomCriteria() {
+        RoomSearchCriteriaDTO criteria = new RoomSearchCriteriaDTO();
+        criteria.setKeyword(txtSearchRoom.getText());
+        int statusIndex = cboStatus.getSelectedIndex();
+        if (statusIndex == 1) {
+            criteria.setStatus(Boolean.FALSE);
+        } else if (statusIndex == 2) {
+            criteria.setStatus(Boolean.TRUE);
+        }
+        criteria.setSortBy(RoomSearchCriteriaDTO.SortBy.CREATED_AT_DESC);
+        return criteria;
+    }
+
+    private void loadUsers() {
+        try {
+            DefaultTableModel model = (DefaultTableModel) tbUserManage.getModel();
+            model.setRowCount(0);
+            for (UserDTO user : userBLL.searchUsers(txtSearchUser.getText(), selectedRoleFilter())) {
+                model.addRow(new Object[]{
+                    user.getUserId(),
+                    user.getUsername(),
+                    user.getName(),
+                    user.getPhoneNumber(),
+                    ViewSupport.role(user.getRole())
+                });
+            }
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private Role selectedRoleFilter() {
+        int index = cboRole.getSelectedIndex();
+        if (index == 1) {
+            return Role.LANDLORD;
+        }
+        if (index == 2) {
+            return Role.TENANT;
+        }
+        if (index == 3) {
+            return Role.ADMIN;
+        }
+        return null;
+    }
+
+    private void loadAmenities() {
+        try {
+            DefaultTableModel model = (DefaultTableModel) tbAmenityManage.getModel();
+            model.setRowCount(0);
+            for (AmenityDTO amenity : amenityBLL.getAllAmenities()) {
+                model.addRow(new Object[]{amenity.getAmenityId(), amenity.getName()});
+            }
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private String landlordName(int landlordId) throws Exception {
+        UserDTO landlord = userBLL.getUserById(landlordId);
+        return landlord == null ? String.valueOf(landlordId) : ViewSupport.safe(landlord.getName());
+    }
+
+    private void openSelectedRoom(JTable table) {
+        try {
+            int roomId = selectedId(table);
+            new RoomDetailFrame(roomId, this::loadAllData).setVisible(true);
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void approveRoom() {
+        try {
+            roomBLL.approveRoom(selectedId(tbApproveRoom));
+            loadAllData();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void declineRoom() {
+        try {
+            int roomId = selectedId(tbApproveRoom);
+            if (!ViewSupport.confirm(this, "Decline and delete this room?")) {
+                return;
+            }
+            roomBLL.declineRoom(roomId);
+            loadAllData();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void deleteRoom() {
+        try {
+            int roomId = selectedId(tbRoomManage);
+            if (!ViewSupport.confirm(this, "Delete this room?")) {
+                return;
+            }
+            roomBLL.deleteRoom(roomId);
+            loadAllData();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void deleteUser() {
+        try {
+            int userId = selectedId(tbUserManage);
+            if (!ViewSupport.confirm(this, "Delete this user?")) {
+                return;
+            }
+            userBLL.deleteUser(userId);
+            loadUsers();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void addAmenity() {
+        String name = JOptionPane.showInputDialog(this, "Amenity name:");
+        if (name == null || name.isBlank()) {
+            return;
+        }
+
+        try {
+            amenityBLL.addAmenity(name);
+            loadAmenities();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void updateAmenity() {
+        try {
+            int row = selectedModelRow(tbAmenityManage);
+            int amenityId = Integer.parseInt(tbAmenityManage.getModel().getValueAt(row, 0).toString());
+            String currentName = String.valueOf(tbAmenityManage.getModel().getValueAt(row, 1));
+            String name = JOptionPane.showInputDialog(this, "Amenity name:", currentName);
+            if (name == null || name.isBlank()) {
+                return;
+            }
+
+            amenityBLL.updateAmenity(new AmenityDTO(amenityId, name));
+            loadAmenities();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private void deleteAmenity() {
+        try {
+            int amenityId = selectedId(tbAmenityManage);
+            if (!ViewSupport.confirm(this, "Delete this amenity?")) {
+                return;
+            }
+            amenityBLL.deleteAmenity(amenityId);
+            loadAmenities();
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        }
+    }
+
+    private int selectedId(JTable table) {
+        int row = selectedModelRow(table);
+        return Integer.parseInt(table.getModel().getValueAt(row, 0).toString());
+    }
+
+    private int selectedModelRow(JTable table) {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            throw new IllegalArgumentException("Please select a row.");
+        }
+        return table.convertRowIndexToModel(row);
+    }
+
+    private void logout() {
+        authBLL.logout();
+        ViewSupport.openFrame(this, new LoginFrame());
+    }
 
     /**
      * @param args the command line arguments

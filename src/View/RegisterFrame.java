@@ -4,6 +4,10 @@
  */
 package View;
 
+import BLL.AuthBLL;
+import DTOs.Role;
+import java.util.Arrays;
+
 /**
  *
  * @author anpha
@@ -17,6 +21,8 @@ public class RegisterFrame extends javax.swing.JFrame {
      */
     public RegisterFrame() {
         initComponents();
+        configureFrame();
+        wireEvents();
     }
 
     /**
@@ -150,6 +156,46 @@ public class RegisterFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void configureFrame() {
+        setLocationRelativeTo(null);
+        setResizable(false);
+        rdoTenant.setSelected(true);
+        getRootPane().setDefaultButton(btnRegister);
+    }
+
+    private void wireEvents() {
+        btnRegister.addActionListener(event -> register());
+        txtPassword.addActionListener(event -> register());
+        btnExit.addActionListener(event -> ViewSupport.openFrame(this, new LoginFrame()));
+    }
+
+    private void register() {
+        btnRegister.setEnabled(false);
+        char[] passwordChars = txtPassword.getPassword();
+        try {
+            new AuthBLL().register(
+                    txtUsername.getText(),
+                    new String(passwordChars),
+                    txtName.getText(),
+                    txtPhone.getText(),
+                    selectedRole());
+
+            ViewSupport.showInfo(this, "Register successful. Please login.");
+            ViewSupport.openFrame(this, new LoginFrame());
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        } finally {
+            Arrays.fill(passwordChars, '\0');
+            if (isDisplayable()) {
+                btnRegister.setEnabled(true);
+            }
+        }
+    }
+
+    private Role selectedRole() {
+        return rdoLandlord.isSelected() ? Role.LANDLORD : Role.TENANT;
+    }
 
     /**
      * @param args the command line arguments

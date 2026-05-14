@@ -1,0 +1,35 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build Java",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "$files = Get-ChildItem -Path src -Recurse -Filter *.java | ForEach-Object { $_.FullName }; New-Item -ItemType Directory -Path build/classes -Force | Out-Null; javac -encoding UTF-8 -cp \"lib/*\" -d build/classes $files"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$javac"
+        },
+        {
+            "label": "clean Java build",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "if (Test-Path build/classes) { Remove-Item build/classes -Recurse -Force }; New-Item -ItemType Directory -Path build/classes -Force | Out-Null"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

@@ -4,6 +4,8 @@
  */
 package View;
 
+import DTOs.ReviewDTO;
+
 /**
  *
  * @author anpha
@@ -15,6 +17,11 @@ public class ReviewPanel extends javax.swing.JPanel {
      */
     public ReviewPanel() {
         initComponents();
+    }
+
+    public ReviewPanel(ReviewDTO review) {
+        this();
+        bindData(review);
     }
 
     /**
@@ -66,6 +73,16 @@ public class ReviewPanel extends javax.swing.JPanel {
                 .addContainerGap(21, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+    private void bindData(ReviewDTO review) {
+        if (review == null) {
+            return;
+        }
+
+        txtName.setText(ViewSupport.safe(review.getTenantName()) + " - " + ViewSupport.dateTime(review.getCreatedAt()));
+        txtContent.setText(ViewSupport.html(review.getComment()));
+        txtRating.setText(review.getRating() + "/5");
+    }
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -4,6 +4,13 @@
  */
 package View;
 
+import BLL.AuthBLL;
+import DTOs.LoginResultDTO;
+import DTOs.Role;
+import DTOs.UserDTO;
+import java.util.Arrays;
+import javax.swing.JFrame;
+
 /**
  *
  * @author anpha
@@ -17,6 +24,8 @@ public class LoginFrame extends javax.swing.JFrame {
      */
     public LoginFrame() {
         initComponents();
+        configureFrame();
+        wireEvents();
     }
 
     /**
@@ -97,6 +106,53 @@ public class LoginFrame extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void configureFrame() {
+        setLocationRelativeTo(null);
+        setResizable(false);
+        getRootPane().setDefaultButton(btnLogin);
+    }
+
+    private void wireEvents() {
+        btnLogin.addActionListener(event -> login());
+        txtPassword.addActionListener(event -> login());
+        btnNewAccount.addActionListener(event -> ViewSupport.openFrame(this, new RegisterFrame()));
+    }
+
+    private void login() {
+        btnLogin.setEnabled(false);
+        char[] passwordChars = txtPassword.getPassword();
+        try {
+            LoginResultDTO result = new AuthBLL().login(txtUsername.getText(), new String(passwordChars));
+            if (!result.isSuccess()) {
+                ViewSupport.showInfo(this, result.getMessage());
+                return;
+            }
+
+            ViewSupport.openFrame(this, createMainFrame(result.getUser()));
+        } catch (Exception ex) {
+            ViewSupport.showError(this, ex);
+        } finally {
+            Arrays.fill(passwordChars, '\0');
+            if (isDisplayable()) {
+                btnLogin.setEnabled(true);
+            }
+        }
+    }
+
+    private JFrame createMainFrame(UserDTO user) {
+        Role role = user == null ? null : user.getRole();
+        if (role == Role.ADMIN) {
+            return new AdminMainFrame();
+        }
+        if (role == Role.LANDLORD) {
+            return new LandlordMainFrame();
+        }
+        if (role == Role.TENANT) {
+            return new TenantMainFrame();
+        }
+        throw new IllegalArgumentException("Unsupported role");
+    }
 
     /**
      * @param args the command line arguments
