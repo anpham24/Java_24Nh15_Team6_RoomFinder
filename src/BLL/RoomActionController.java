@@ -163,7 +163,8 @@ public class RoomActionController {
         if (!srcFile.getAbsolutePath().equals(dest.getAbsolutePath())) {
             Files.copy(srcFile.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
         }
-        return dest.getAbsolutePath();
+        // Trả về đường dẫn tương đối (tính từ thư mục gốc project) để lưu DB
+        return "src/Images/" + dest.getName();
     }
 
     /**
