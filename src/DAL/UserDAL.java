@@ -6,21 +6,21 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class UserDAL {
-    public UserDTO findById(int userId) throws SQLException {
+    public UserDTO findById(String userId) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return findById(connection, userId);
         }
     }
 
-    public UserDTO findById(Connection connection, int userId) throws SQLException {
+    public UserDTO findById(Connection connection, String userId) throws SQLException {
         String sql = "SELECT user_id, username, name, phone_number, role FROM users WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, userId);
+            statement.setString(1, userId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapUser(resultSet);
@@ -87,29 +87,25 @@ public class UserDAL {
         }
     }
 
-    public int insert(UserDTO user) throws SQLException {
+    public String insert(UserDTO user) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return insert(connection, user);
         }
     }
 
-    public int insert(Connection connection, UserDTO user) throws SQLException {
-        String sql = "INSERT INTO users(username, name, phone_number, role) VALUES (?, ?, ?, ?)";
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setString(1, user.getUsername());
-            statement.setString(2, user.getName());
-            statement.setString(3, user.getPhoneNumber());
-            statement.setString(4, user.getRole().toDbValue());
+    public String insert(Connection connection, UserDTO user) throws SQLException {
+        String userId = UUID.randomUUID().toString();
+        String sql = "INSERT INTO users(user_id, username, name, phone_number, role) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, userId);
+            statement.setString(2, user.getUsername());
+            statement.setString(3, user.getName());
+            statement.setString(4, user.getPhoneNumber());
+            statement.setString(5, user.getRole().toDbValue());
             statement.executeUpdate();
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    int id = keys.getInt(1);
-                    user.setUserId(id);
-                    return id;
-                }
-            }
+            user.setUserId(userId);
+            return userId;
         }
-        return 0;
     }
 
     public boolean update(UserDTO user) throws SQLException {
@@ -124,21 +120,21 @@ public class UserDAL {
             statement.setString(1, user.getName());
             statement.setString(2, user.getPhoneNumber());
             statement.setString(3, user.getRole().toDbValue());
-            statement.setInt(4, user.getUserId());
+            statement.setString(4, user.getUserId());
             return statement.executeUpdate() > 0;
         }
     }
 
-    public boolean delete(int userId) throws SQLException {
+    public boolean delete(String userId) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return delete(connection, userId);
         }
     }
 
-    public boolean delete(Connection connection, int userId) throws SQLException {
+    public boolean delete(Connection connection, String userId) throws SQLException {
         String sql = "DELETE FROM users WHERE user_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, userId);
+            statement.setString(1, userId);
             return statement.executeUpdate() > 0;
         }
     }
@@ -159,7 +155,7 @@ public class UserDAL {
 
     private UserDTO mapUser(ResultSet resultSet) throws SQLException {
         return new UserDTO(
-                resultSet.getInt("user_id"),
+                resultSet.getString("user_id"),
                 resultSet.getString("username"),
                 resultSet.getString("name"),
                 resultSet.getString("phone_number"),

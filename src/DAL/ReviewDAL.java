@@ -6,12 +6,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ReviewDAL {
-    public List<ReviewDTO> findByRoomId(int roomId) throws SQLException {
+    public List<ReviewDTO> findByRoomId(String roomId) throws SQLException {
         String sql = "SELECT r.review_id, r.room_id, r.tenant_id, r.rating, r.comment, r.created_at, "
                 + "u.name AS tenant_name "
                 + "FROM reviews r "
@@ -20,14 +20,14 @@ public class ReviewDAL {
                 + "ORDER BY r.created_at DESC, r.review_id DESC";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 return mapReviews(resultSet);
             }
         }
     }
 
-    public ReviewDTO findById(int reviewId) throws SQLException {
+    public ReviewDTO findById(String reviewId) throws SQLException {
         String sql = "SELECT r.review_id, r.room_id, r.tenant_id, r.rating, r.comment, r.created_at, "
                 + "u.name AS tenant_name "
                 + "FROM reviews r "
@@ -35,7 +35,7 @@ public class ReviewDAL {
                 + "WHERE r.review_id = ?";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, reviewId);
+            statement.setString(1, reviewId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapReview(resultSet);
@@ -45,7 +45,7 @@ public class ReviewDAL {
         return null;
     }
 
-    public ReviewDTO findByTenantAndRoom(int tenantId, int roomId) throws SQLException {
+    public ReviewDTO findByTenantAndRoom(String tenantId, String roomId) throws SQLException {
         String sql = "SELECT r.review_id, r.room_id, r.tenant_id, r.rating, r.comment, r.created_at, "
                 + "u.name AS tenant_name "
                 + "FROM reviews r "
@@ -55,8 +55,8 @@ public class ReviewDAL {
                 + "LIMIT 1";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, tenantId);
-            statement.setInt(2, roomId);
+            statement.setString(1, tenantId);
+            statement.setString(2, roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapReview(resultSet);
@@ -66,24 +66,20 @@ public class ReviewDAL {
         return null;
     }
 
-    public int insert(ReviewDTO review) throws SQLException {
-        String sql = "INSERT INTO reviews(room_id, tenant_id, rating, comment, created_at) VALUES (?, ?, ?, ?, NOW())";
+    public String insert(ReviewDTO review) throws SQLException {
+        String reviewId = UUID.randomUUID().toString();
+        String sql = "INSERT INTO reviews(review_id, room_id, tenant_id, rating, comment, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
         try (Connection connection = DBConnection.getConnection();
-                PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, review.getRoomId());
-            statement.setInt(2, review.getTenantId());
-            statement.setInt(3, review.getRating());
-            statement.setString(4, review.getComment());
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, reviewId);
+            statement.setString(2, review.getRoomId());
+            statement.setString(3, review.getTenantId());
+            statement.setInt(4, review.getRating());
+            statement.setString(5, review.getComment());
             statement.executeUpdate();
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    int id = keys.getInt(1);
-                    review.setReviewId(id);
-                    return id;
-                }
-            }
+            review.setReviewId(reviewId);
+            return reviewId;
         }
-        return 0;
     }
 
     public boolean update(ReviewDTO review) throws SQLException {
@@ -92,33 +88,33 @@ public class ReviewDAL {
                 PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, review.getRating());
             statement.setString(2, review.getComment());
-            statement.setInt(3, review.getReviewId());
+            statement.setString(3, review.getReviewId());
             return statement.executeUpdate() > 0;
         }
     }
 
-    public boolean delete(int reviewId) throws SQLException {
+    public boolean delete(String reviewId) throws SQLException {
         String sql = "DELETE FROM reviews WHERE review_id = ?";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, reviewId);
+            statement.setString(1, reviewId);
             return statement.executeUpdate() > 0;
         }
     }
 
-    public int deleteByRoomId(Connection connection, int roomId) throws SQLException {
+    public int deleteByRoomId(Connection connection, String roomId) throws SQLException {
         String sql = "DELETE FROM reviews WHERE room_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             return statement.executeUpdate();
         }
     }
 
-    public double getAverageRating(int roomId) throws SQLException {
+    public double getAverageRating(String roomId) throws SQLException {
         String sql = "SELECT COALESCE(AVG(rating), 0) AS average_rating FROM reviews WHERE room_id = ?";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getDouble("average_rating");
@@ -128,11 +124,11 @@ public class ReviewDAL {
         return 0;
     }
 
-    public int countByRoomId(int roomId) throws SQLException {
+    public int countByRoomId(String roomId) throws SQLException {
         String sql = "SELECT COUNT(*) AS review_count FROM reviews WHERE room_id = ?";
         try (Connection connection = DBConnection.getConnection();
                 PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return resultSet.getInt("review_count");
@@ -153,9 +149,9 @@ public class ReviewDAL {
     private ReviewDTO mapReview(ResultSet resultSet) throws SQLException {
         Timestamp createdAt = resultSet.getTimestamp("created_at");
         ReviewDTO review = new ReviewDTO(
-                resultSet.getInt("review_id"),
-                resultSet.getInt("room_id"),
-                resultSet.getInt("tenant_id"),
+                resultSet.getString("review_id"),
+                resultSet.getString("room_id"),
+                resultSet.getString("tenant_id"),
                 resultSet.getInt("rating"),
                 resultSet.getString("comment"),
                 createdAt == null ? null : createdAt.toLocalDateTime());

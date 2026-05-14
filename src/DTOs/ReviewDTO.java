@@ -3,9 +3,9 @@ package DTOs;
 import java.time.LocalDateTime;
 
 public class ReviewDTO {
-    private int reviewId;
-    private int roomId;
-    private int tenantId;
+    private String reviewId;
+    private String roomId;
+    private String tenantId;
     private int rating;
     private String comment;
     private LocalDateTime createdAt;
@@ -14,7 +14,7 @@ public class ReviewDTO {
     public ReviewDTO() {
     }
 
-    public ReviewDTO(int reviewId, int roomId, int tenantId, int rating, String comment, LocalDateTime createdAt) {
+    public ReviewDTO(String reviewId, String roomId, String tenantId, int rating, String comment, LocalDateTime createdAt) {
         this.reviewId = reviewId;
         this.roomId = roomId;
         this.tenantId = tenantId;
@@ -23,27 +23,27 @@ public class ReviewDTO {
         this.createdAt = createdAt;
     }
 
-    public int getReviewId() {
+    public String getReviewId() {
         return reviewId;
     }
 
-    public void setReviewId(int reviewId) {
+    public void setReviewId(String reviewId) {
         this.reviewId = reviewId;
     }
 
-    public int getRoomId() {
+    public String getRoomId() {
         return roomId;
     }
 
-    public void setRoomId(int roomId) {
+    public void setRoomId(String roomId) {
         this.roomId = roomId;
     }
 
-    public int getTenantId() {
+    public String getTenantId() {
         return tenantId;
     }
 
-    public void setTenantId(int tenantId) {
+    public void setTenantId(String tenantId) {
         this.tenantId = tenantId;
     }
 

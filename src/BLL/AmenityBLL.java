@@ -13,22 +13,22 @@ public class AmenityBLL {
         return amenityDAL.findAll();
     }
 
-    public AmenityDTO getAmenityById(int amenityId) throws SQLException {
+    public AmenityDTO getAmenityById(String amenityId) throws SQLException {
         return amenityDAL.findById(amenityId);
     }
 
-    public int addAmenity(String name) throws SQLException {
+    public String addAmenity(String name) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
         String normalizedName = validateName(name);
         if (amenityDAL.existsByName(normalizedName)) {
             throw new IllegalArgumentException("Tiện nghi đã tồn tại");
         }
-        return amenityDAL.insert(new AmenityDTO(0, normalizedName));
+        return amenityDAL.insert(new AmenityDTO(null, normalizedName));
     }
 
     public boolean updateAmenity(AmenityDTO amenity) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
-        if (amenity == null || amenity.getAmenityId() <= 0) {
+        if (amenity == null || amenity.getAmenityId() == null || amenity.getAmenityId().isBlank()) {
             throw new IllegalArgumentException("Tiện nghi hợp lệ là bắt buộc");
         }
 
@@ -46,9 +46,9 @@ public class AmenityBLL {
         return amenityDAL.update(amenity);
     }
 
-    public boolean deleteAmenity(int amenityId) throws SQLException {
+    public boolean deleteAmenity(String amenityId) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
-        if (amenityId <= 0) {
+        if (amenityId == null || amenityId.isBlank()) {
             throw new IllegalArgumentException("ID tiện nghi hợp lệ là bắt buộc");
         }
         return amenityDAL.delete(amenityId);

@@ -55,6 +55,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         btnLogout = new javax.swing.JButton();
+        lbGreeting = new javax.swing.JLabel();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         pnApproveRoom = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -112,7 +113,9 @@ public class AdminMainFrame extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 985, Short.MAX_VALUE)
+                .addGap(18, 18, 18)
+                .addComponent(lbGreeting, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnLogout)
                 .addContainerGap())
         );
@@ -122,7 +125,8 @@ public class AdminMainFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogout)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(lbGreeting))
                 .addContainerGap(9, Short.MAX_VALUE))
         );
 
@@ -338,7 +342,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jTabbedPane1)
+            .addComponent(jTabbedPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 1280, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -496,14 +500,14 @@ public class AdminMainFrame extends javax.swing.JFrame {
         }
     }
 
-    private String landlordName(int landlordId) throws Exception {
+    private String landlordName(String landlordId) throws Exception {
         UserDTO landlord = userBLL.getUserById(landlordId);
-        return landlord == null ? String.valueOf(landlordId) : ViewSupport.safe(landlord.getName());
+        return landlord == null ? landlordId : ViewSupport.safe(landlord.getName());
     }
 
     private void openSelectedRoom(JTable table) {
         try {
-            int roomId = selectedId(table);
+            String roomId = (String) table.getModel().getValueAt(selectedModelRow(table), 0);
             new RoomDetailFrame(roomId, this::loadAllData).setVisible(true);
         } catch (Exception ex) {
             ViewSupport.showError(this, ex);
@@ -512,7 +516,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
     private void approveRoom() {
         try {
-            roomBLL.approveRoom(selectedId(tbApproveRoom));
+            roomBLL.approveRoom(selectedStringId(tbApproveRoom));
             loadAllData();
         } catch (Exception ex) {
             ViewSupport.showError(this, ex);
@@ -521,7 +525,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
     private void declineRoom() {
         try {
-            int roomId = selectedId(tbApproveRoom);
+            String roomId = selectedStringId(tbApproveRoom);
             if (!ViewSupport.confirm(this, "Từ chối và xóa phòng này?")) {
                 return;
             }
@@ -534,7 +538,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
     private void deleteRoom() {
         try {
-            int roomId = selectedId(tbRoomManage);
+            String roomId = selectedStringId(tbRoomManage);
             if (!ViewSupport.confirm(this, "Xóa phòng này?")) {
                 return;
             }
@@ -547,7 +551,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
     private void deleteUser() {
         try {
-            int userId = selectedId(tbUserManage);
+            String userId = selectedStringId(tbUserManage);
             if (!ViewSupport.confirm(this, "Xóa người dùng này?")) {
                 return;
             }
@@ -575,7 +579,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private void updateAmenity() {
         try {
             int row = selectedModelRow(tbAmenityManage);
-            int amenityId = Integer.parseInt(tbAmenityManage.getModel().getValueAt(row, 0).toString());
+            String amenityId = (String) tbAmenityManage.getModel().getValueAt(row, 0);
             String currentName = String.valueOf(tbAmenityManage.getModel().getValueAt(row, 1));
             String name = JOptionPane.showInputDialog(this, "Tên tiện nghi:", currentName);
             if (name == null || name.isBlank()) {
@@ -591,7 +595,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
     private void deleteAmenity() {
         try {
-            int amenityId = selectedId(tbAmenityManage);
+            String amenityId = selectedStringId(tbAmenityManage);
             if (!ViewSupport.confirm(this, "Xóa tiện nghi này?")) {
                 return;
             }
@@ -602,9 +606,9 @@ public class AdminMainFrame extends javax.swing.JFrame {
         }
     }
 
-    private int selectedId(JTable table) {
+    private String selectedStringId(JTable table) {
         int row = selectedModelRow(table);
-        return Integer.parseInt(table.getModel().getValueAt(row, 0).toString());
+        return (String) table.getModel().getValueAt(row, 0);
     }
 
     private int selectedModelRow(JTable table) {
@@ -677,6 +681,7 @@ public class AdminMainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JLabel lbGreeting;
     private javax.swing.JPanel pnAmenityManage;
     private javax.swing.JPanel pnApproveRoom;
     private javax.swing.JPanel pnRoomManage;

@@ -58,9 +58,9 @@ public class TenantMainFrame extends javax.swing.JFrame {
         btgSort = new javax.swing.ButtonGroup();
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        btnLogout = new javax.swing.JButton();
         lbGreeting = new javax.swing.JLabel();
         btnLogin = new javax.swing.JButton();
-        btnLogout = new javax.swing.JButton();
         pnSort = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         rdoPrice = new javax.swing.JRadioButton();
@@ -86,7 +86,11 @@ public class TenantMainFrame extends javax.swing.JFrame {
         jLabel1.setText("Hệ thống tìm kiếm phòng trọ");
 
         btnLogout.setText("Đăng xuất");
+
+        lbGreeting.setName("lbGreeting"); // NOI18N
+
         btnLogin.setText("Đăng nhập");
+        btnLogin.setName(""); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -96,8 +100,8 @@ public class TenantMainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
-                .addComponent(lbGreeting)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(lbGreeting, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 836, Short.MAX_VALUE)
                 .addComponent(btnLogin)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnLogout)
@@ -109,11 +113,13 @@ public class TenantMainFrame extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogout)
-                    .addComponent(btnLogin)
+                    .addComponent(jLabel1)
                     .addComponent(lbGreeting)
-                    .addComponent(jLabel1))
+                    .addComponent(btnLogin))
                 .addContainerGap(9, Short.MAX_VALUE))
         );
+
+        btnLogin.getAccessibleContext().setAccessibleParent(lbGreeting);
 
         pnSort.setBackground(new java.awt.Color(255, 255, 255));
         pnSort.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
@@ -151,7 +157,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
                         .addComponent(rdoReview)))
                 .addGroup(pnSortLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(pnSortLayout.createSequentialGroup()
-                        .addGap(35, 35, 35)
+                        .addGap(53, 53, 53)
                         .addComponent(jLabel3))
                     .addGroup(pnSortLayout.createSequentialGroup()
                         .addGap(52, 52, 52)
@@ -179,16 +185,16 @@ public class TenantMainFrame extends javax.swing.JFrame {
                     .addComponent(jLabel4))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(pnSortLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(pnAmenity, javax.swing.GroupLayout.DEFAULT_SIZE, 75, Short.MAX_VALUE)
                     .addGroup(pnSortLayout.createSequentialGroup()
-                        .addGroup(pnSortLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(rdoPrice)
-                            .addComponent(rdoReview)
-                            .addComponent(txtMinPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtMaxPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(9, 9, 9)
-                        .addComponent(btnApply)
-                        .addGap(0, 67, Short.MAX_VALUE))
-                    .addComponent(pnAmenity, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(pnSortLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(pnSortLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(rdoPrice)
+                                .addComponent(rdoReview)
+                                .addComponent(txtMinPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtMaxPrice, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(btnApply))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -316,8 +322,8 @@ public class TenantMainFrame extends javax.swing.JFrame {
         }
     }
 
-    private List<Integer> selectedAmenityIds() {
-        List<Integer> ids = new ArrayList<>();
+    private List<String> selectedAmenityIds() {
+        List<String> ids = new ArrayList<>();
         for (Map.Entry<JCheckBox, AmenityDTO> entry : amenityByCheckBox.entrySet()) {
             if (entry.getKey().isSelected()) {
                 ids.add(entry.getValue().getAmenityId());
@@ -342,7 +348,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
         pnRoomList.repaint();
     }
 
-    private void openRoomDetail(int roomId) {
+    private void openRoomDetail(String roomId) {
         new RoomDetailFrame(roomId, this::searchRooms).setVisible(true);
     }
 
@@ -381,7 +387,6 @@ public class TenantMainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnApply;
     private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnLogout;
-    private javax.swing.JLabel lbGreeting;
     private javax.swing.JButton btnSearch;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -389,6 +394,7 @@ public class TenantMainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lbGreeting;
     private javax.swing.JPanel pnAmenity;
     private javax.swing.JPanel pnRoomList;
     private javax.swing.JPanel pnSort;

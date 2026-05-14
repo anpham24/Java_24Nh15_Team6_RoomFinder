@@ -59,8 +59,8 @@ public class RoomBLL {
         return roomDAL.search(adminCriteria);
     }
 
-    public RoomDetailDTO getRoomDetail(int roomId) throws SQLException {
-        if (roomId <= 0) {
+    public RoomDetailDTO getRoomDetail(String roomId) throws SQLException {
+        if (roomId == null || roomId.isBlank()) {
             throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
 
@@ -82,7 +82,7 @@ public class RoomBLL {
         return detail;
     }
 
-    public int createRoom(RoomDetailDTO detail) throws SQLException {
+    public String createRoom(RoomDetailDTO detail) throws SQLException {
         UserDTO landlord = SessionContext.requireRole(Role.LANDLORD);
         RoomDTO room = requireRoom(detail);
         validateRoom(room);
@@ -94,7 +94,7 @@ public class RoomBLL {
         try (Connection connection = DBConnection.getConnection()) {
             connection.setAutoCommit(false);
             try {
-                int roomId = roomDAL.insert(connection, room);
+                String roomId = roomDAL.insert(connection, room);
                 roomAmenityDAL.insertBatch(connection, roomId, extractAmenityIds(detail));
                 roomImageDAL.insertBatch(connection, roomId, extractImages(detail));
                 connection.commit();
@@ -111,7 +111,7 @@ public class RoomBLL {
     public boolean updateRoom(RoomDetailDTO detail) throws SQLException {
         UserDTO landlord = SessionContext.requireRole(Role.LANDLORD);
         RoomDTO room = requireRoom(detail);
-        if (room.getRoomId() <= 0) {
+        if (room.getRoomId() == null || room.getRoomId().isBlank()) {
             throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         validateRoom(room);
@@ -120,7 +120,7 @@ public class RoomBLL {
         if (existing == null) {
             return false;
         }
-        if (existing.getLandlordId() != landlord.getUserId()) {
+        if (!existing.getLandlordId().equals(landlord.getUserId())) {
             throw new SecurityException("Quyền truy cập bị từ chối");
         }
 
@@ -145,47 +145,47 @@ public class RoomBLL {
         }
     }
 
-    public boolean deleteRoom(int roomId) throws SQLException {
+    public boolean deleteRoom(String roomId) throws SQLException {
         UserDTO user = SessionContext.requireAnyRole(Role.ADMIN, Role.LANDLORD);
         RoomDTO room = roomDAL.findById(roomId);
         if (room == null) {
             return false;
         }
-        if (user.getRole() != Role.ADMIN && room.getLandlordId() != user.getUserId()) {
+        if (user.getRole() != Role.ADMIN && !room.getLandlordId().equals(user.getUserId())) {
             throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return deleteRoomCascade(roomId);
     }
 
-    public boolean updateAvailability(int roomId, boolean availability) throws SQLException {
+    public boolean updateAvailability(String roomId, boolean availability) throws SQLException {
         UserDTO landlord = SessionContext.requireRole(Role.LANDLORD);
         RoomDTO room = roomDAL.findById(roomId);
         if (room == null) {
             return false;
         }
-        if (room.getLandlordId() != landlord.getUserId()) {
+        if (!room.getLandlordId().equals(landlord.getUserId())) {
             throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return roomDAL.updateAvailability(roomId, availability);
     }
 
-    public boolean approveRoom(int roomId) throws SQLException {
+    public boolean approveRoom(String roomId) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
-        if (roomId <= 0) {
+        if (roomId == null || roomId.isBlank()) {
             throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         return roomDAL.approve(roomId);
     }
 
-    public boolean declineRoom(int roomId) throws SQLException {
+    public boolean declineRoom(String roomId) throws SQLException {
         SessionContext.requireRole(Role.ADMIN);
-        if (roomId <= 0) {
+        if (roomId == null || roomId.isBlank()) {
             throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         return deleteRoomCascade(roomId);
     }
 
-    private boolean deleteRoomCascade(int roomId) throws SQLException {
+    private boolean deleteRoomCascade(String roomId) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             connection.setAutoCommit(false);
             try {
@@ -277,14 +277,14 @@ public class RoomBLL {
         return copy;
     }
 
-    private List<Integer> extractAmenityIds(RoomDetailDTO detail) {
-        List<Integer> ids = new ArrayList<>();
+    private List<String> extractAmenityIds(RoomDetailDTO detail) {
+        List<String> ids = new ArrayList<>();
         if (detail.getAmenities() == null) {
             return ids;
         }
 
         for (AmenityDTO amenity : detail.getAmenities()) {
-            if (amenity != null && amenity.getAmenityId() > 0 && !ids.contains(amenity.getAmenityId())) {
+            if (amenity != null && amenity.getAmenityId() != null && !amenity.getAmenityId().isBlank() && !ids.contains(amenity.getAmenityId())) {
                 ids.add(amenity.getAmenityId());
             }
         }

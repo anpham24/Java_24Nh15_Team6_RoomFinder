@@ -80,7 +80,11 @@
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="jLabel1" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace max="32767" attributes="0"/>
+                  <EmptySpace type="separate" max="-2" attributes="0"/>
+                  <Component id="lbGreeting" min="-2" pref="37" max="-2" attributes="0"/>
+                  <EmptySpace pref="836" max="32767" attributes="0"/>
+                  <Component id="btnLogin" min="-2" max="-2" attributes="0"/>
+                  <EmptySpace max="-2" attributes="0"/>
                   <Component id="btnLogout" min="-2" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>
@@ -93,6 +97,8 @@
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="btnLogout" alignment="3" min="-2" max="-2" attributes="0"/>
                       <Component id="jLabel1" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="lbGreeting" alignment="0" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnLogin" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace pref="9" max="32767" attributes="0"/>
               </Group>
@@ -112,6 +118,22 @@
           <Properties>
             <Property name="text" type="java.lang.String" value="&#x110;&#x103;ng xu&#x1ea5;t"/>
           </Properties>
+        </Component>
+        <Component class="javax.swing.JLabel" name="lbGreeting">
+          <Properties>
+            <Property name="name" type="java.lang.String" value="lbGreeting" noResource="true"/>
+          </Properties>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnLogin">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="&#x110;&#x103;ng nh&#x1ead;p"/>
+            <Property name="name" type="java.lang.String" value="" noResource="true"/>
+          </Properties>
+          <AccessibilityProperties>
+            <Property name="AccessibleContext.accessibleParent" type="javax.accessibility.Accessible" editor="org.netbeans.modules.form.ComponentChooserEditor">
+              <ComponentRef name="lbGreeting"/>
+            </Property>
+          </AccessibilityProperties>
         </Component>
       </SubComponents>
     </Container>
@@ -145,7 +167,7 @@
                   </Group>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="102" alignment="0" attributes="0">
-                          <EmptySpace min="-2" pref="35" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
                           <Component id="jLabel3" min="-2" max="-2" attributes="0"/>
                       </Group>
                       <Group type="102" alignment="0" attributes="0">
@@ -182,18 +204,19 @@
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="pnAmenity" pref="75" max="32767" attributes="0"/>
                       <Group type="102" attributes="0">
-                          <Group type="103" groupAlignment="3" attributes="0">
-                              <Component id="rdoPrice" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="rdoReview" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="txtMinPrice" alignment="3" min="-2" max="-2" attributes="0"/>
-                              <Component id="txtMaxPrice" alignment="3" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="0" attributes="0">
+                              <Group type="103" groupAlignment="3" attributes="0">
+                                  <Component id="rdoPrice" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="rdoReview" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="txtMinPrice" alignment="3" min="-2" max="-2" attributes="0"/>
+                                  <Component id="txtMaxPrice" alignment="3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <Component id="btnApply" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <EmptySpace min="-2" pref="9" max="-2" attributes="0"/>
-                          <Component id="btnApply" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="0" pref="67" max="32767" attributes="0"/>
+                          <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
                       </Group>
-                      <Component id="pnAmenity" max="32767" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
               </Group>

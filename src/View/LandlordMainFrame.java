@@ -49,8 +49,8 @@ public class LandlordMainFrame extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        lbGreeting = new javax.swing.JLabel();
         btnLogout = new javax.swing.JButton();
+        lbGreeting = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         pnRoomList = new javax.swing.JPanel();
@@ -75,7 +75,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jLabel1)
                 .addGap(18, 18, 18)
-                .addComponent(lbGreeting)
+                .addComponent(lbGreeting, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnLogout)
                 .addContainerGap())
@@ -86,8 +86,8 @@ public class LandlordMainFrame extends javax.swing.JFrame {
                 .addGap(15, 15, 15)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogout)
-                    .addComponent(lbGreeting)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(lbGreeting))
                 .addContainerGap(12, Short.MAX_VALUE))
         );
 
@@ -182,7 +182,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
         pnRoomList.repaint();
     }
 
-    private void openRoomDetail(int roomId) {
+    private void openRoomDetail(String roomId) {
         new RoomDetailFrame(roomId, this::loadRooms).setVisible(true);
     }
 
@@ -258,10 +258,10 @@ public class LandlordMainFrame extends javax.swing.JFrame {
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel lbGreeting;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JLabel lbGreeting;
     private javax.swing.JPanel pnRoomList;
     // End of variables declaration//GEN-END:variables
 }

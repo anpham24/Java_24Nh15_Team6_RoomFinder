@@ -49,7 +49,7 @@ public class AuthBLL {
                 AccountDTO account = new AccountDTO(normalizedUsername, password);
                 accountDAL.insert(connection, account);
 
-                UserDTO user = new UserDTO(0, normalizedUsername, name.trim(), phoneNumber.trim(), role);
+                UserDTO user = new UserDTO(null, normalizedUsername, name.trim(), phoneNumber.trim(), role);
                 userDAL.insert(connection, user);
                 connection.commit();
                 return user;

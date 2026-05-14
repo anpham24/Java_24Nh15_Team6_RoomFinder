@@ -13,14 +13,14 @@ public class ReviewBLL {
     private final ReviewDAL reviewDAL = new ReviewDAL();
     private final RoomDAL roomDAL = new RoomDAL();
 
-    public List<ReviewDTO> getReviewsByRoomId(int roomId) throws SQLException {
-        if (roomId <= 0) {
+    public List<ReviewDTO> getReviewsByRoomId(String roomId) throws SQLException {
+        if (roomId == null || roomId.isBlank()) {
             throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         return reviewDAL.findByRoomId(roomId);
     }
 
-    public int addReview(int roomId, int rating, String comment) throws SQLException {
+    public String addReview(String roomId, int rating, String comment) throws SQLException {
         UserDTO tenant = SessionContext.requireRole(Role.TENANT);
         validateReview(roomId, rating, comment);
 
@@ -45,9 +45,9 @@ public class ReviewBLL {
         return reviewDAL.insert(review);
     }
 
-    public boolean updateReview(int reviewId, int rating, String comment) throws SQLException {
+    public boolean updateReview(String reviewId, int rating, String comment) throws SQLException {
         UserDTO tenant = SessionContext.requireRole(Role.TENANT);
-        if (reviewId <= 0) {
+        if (reviewId == null || reviewId.isBlank()) {
             throw new IllegalArgumentException("ID đánh giá hợp lệ là bắt buộc");
         }
 
@@ -55,7 +55,7 @@ public class ReviewBLL {
         if (existing == null) {
             return false;
         }
-        if (existing.getTenantId() != tenant.getUserId()) {
+        if (!existing.getTenantId().equals(tenant.getUserId())) {
             throw new SecurityException("Quyền truy cập bị từ chối");
         }
 
@@ -65,9 +65,9 @@ public class ReviewBLL {
         return reviewDAL.update(existing);
     }
 
-    public boolean deleteReview(int reviewId) throws SQLException {
+    public boolean deleteReview(String reviewId) throws SQLException {
         UserDTO user = SessionContext.requireAnyRole(Role.ADMIN, Role.TENANT);
-        if (reviewId <= 0) {
+        if (reviewId == null || reviewId.isBlank()) {
             throw new IllegalArgumentException("ID đánh giá hợp lệ là bắt buộc");
         }
 
@@ -75,15 +75,15 @@ public class ReviewBLL {
         if (existing == null) {
             return false;
         }
-        if (user.getRole() != Role.ADMIN && existing.getTenantId() != user.getUserId()) {
+        if (user.getRole() != Role.ADMIN && !existing.getTenantId().equals(user.getUserId())) {
             throw new SecurityException("Quyền truy cập bị từ chối");
         }
 
         return reviewDAL.delete(reviewId);
     }
 
-    private void validateReview(int roomId, int rating, String comment) {
-        if (roomId <= 0) {
+    private void validateReview(String roomId, int rating, String comment) {
+        if (roomId == null || roomId.isBlank()) {
             throw new IllegalArgumentException("ID phòng hợp lệ là bắt buộc");
         }
         if (rating < 1 || rating > 5) {

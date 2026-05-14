@@ -261,7 +261,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
         pnAmenity.removeAll();
         amenityByCheckBox.clear();
 
-        Set<Integer> selectedAmenityIds = selectedAmenityIdsFromDetail();
+        Set<String> selectedAmenityIds = selectedAmenityIdsFromDetail();
         if (allAmenities.isEmpty()) {
             pnAmenity.add(new JLabel("Không có tiện nghi"));
         } else {
@@ -277,8 +277,8 @@ public class RoomActionDialog extends javax.swing.JDialog {
         pnAmenity.repaint();
     }
 
-    private Set<Integer> selectedAmenityIdsFromDetail() {
-        Set<Integer> ids = new HashSet<>();
+    private Set<String> selectedAmenityIdsFromDetail() {
+        Set<String> ids = new HashSet<>();
         if (currentDetail == null || currentDetail.getAmenities() == null) {
             return ids;
         }
@@ -374,7 +374,7 @@ public class RoomActionDialog extends javax.swing.JDialog {
         return amenities;
     }
 
-    private List<RoomImageDTO> selectedImages(int roomId) {
+    private List<RoomImageDTO> selectedImages(String roomId) {
         List<RoomImageDTO> images = new ArrayList<>();
         for (String imagePath : imagePaths) {
             images.add(new RoomImageDTO(0, roomId, imagePath));

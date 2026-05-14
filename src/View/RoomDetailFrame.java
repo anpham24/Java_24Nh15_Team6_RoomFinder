@@ -43,7 +43,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
         wireEvents();
     }
 
-    public RoomDetailFrame(int roomId, Runnable onChanged) {
+    public RoomDetailFrame(String roomId, Runnable onChanged) {
         this();
         this.onChanged = onChanged;
         loadDetail(roomId);
@@ -301,7 +301,7 @@ public class RoomDetailFrame extends javax.swing.JFrame {
         jButton1.addActionListener(event -> toggleAvailability());
     }
 
-    private void loadDetail(int roomId) {
+    private void loadDetail(String roomId) {
         try {
             currentDetail = roomBLL.getRoomDetail(roomId);
             if (currentDetail == null) {

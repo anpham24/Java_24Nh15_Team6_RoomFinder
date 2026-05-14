@@ -3,8 +3,8 @@ package DTOs;
 import java.time.LocalDateTime;
 
 public class RoomDTO {
-    private int roomId;
-    private int landlordId;
+    private String roomId;
+    private String landlordId;
     private String title;
     private String address;
     private String description;
@@ -19,7 +19,7 @@ public class RoomDTO {
     public RoomDTO() {
     }
 
-    public RoomDTO(int roomId, int landlordId, String title, String address, String description,
+    public RoomDTO(String roomId, String landlordId, String title, String address, String description,
             double area, double price, boolean status, boolean availability, LocalDateTime createdAt) {
         this.roomId = roomId;
         this.landlordId = landlordId;
@@ -33,19 +33,19 @@ public class RoomDTO {
         this.createdAt = createdAt;
     }
 
-    public int getRoomId() {
+    public String getRoomId() {
         return roomId;
     }
 
-    public void setRoomId(int roomId) {
+    public void setRoomId(String roomId) {
         this.roomId = roomId;
     }
 
-    public int getLandlordId() {
+    public String getLandlordId() {
         return landlordId;
     }
 
-    public void setLandlordId(int landlordId) {
+    public void setLandlordId(String landlordId) {
         this.landlordId = landlordId;
     }
 

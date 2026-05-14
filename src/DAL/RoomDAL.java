@@ -8,22 +8,22 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class RoomDAL {
-    public RoomDTO findById(int roomId) throws SQLException {
+    public RoomDTO findById(String roomId) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return findById(connection, roomId);
         }
     }
 
-    public RoomDTO findById(Connection connection, int roomId) throws SQLException {
+    public RoomDTO findById(Connection connection, String roomId) throws SQLException {
         String sql = baseSelect() + " WHERE r.room_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             try (ResultSet resultSet = statement.executeQuery()) {
                 if (resultSet.next()) {
                     return mapRoom(resultSet);
@@ -52,7 +52,7 @@ public class RoomDAL {
         return search(criteria);
     }
 
-    public List<RoomDTO> findByLandlordId(int landlordId) throws SQLException {
+    public List<RoomDTO> findByLandlordId(String landlordId) throws SQLException {
         RoomSearchCriteriaDTO criteria = new RoomSearchCriteriaDTO();
         criteria.setLandlordId(landlordId);
         criteria.setSortBy(SortBy.CREATED_AT_DESC);
@@ -101,7 +101,7 @@ public class RoomDAL {
         }
 
         if (criteria.hasAmenityFilter()) {
-            for (Integer amenityId : criteria.getAmenityIds()) {
+            for (String amenityId : criteria.getAmenityIds()) {
                 if (amenityId != null) {
                     sql.append(" AND EXISTS (SELECT 1 FROM room_amenities ra_filter ")
                             .append("WHERE ra_filter.room_id = r.room_id AND ra_filter.amenity_id = ?)");
@@ -121,34 +121,30 @@ public class RoomDAL {
         }
     }
 
-    public int insert(RoomDTO room) throws SQLException {
+    public String insert(RoomDTO room) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return insert(connection, room);
         }
     }
 
-    public int insert(Connection connection, RoomDTO room) throws SQLException {
-        String sql = "INSERT INTO rooms(landlord_id, title, address, description, area, price, status, availability, created_at) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-        try (PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            statement.setInt(1, room.getLandlordId());
-            statement.setString(2, room.getTitle());
-            statement.setString(3, room.getAddress());
-            statement.setString(4, room.getDescription());
-            statement.setDouble(5, room.getArea());
-            statement.setDouble(6, room.getPrice());
-            statement.setBoolean(7, room.isStatus());
-            statement.setBoolean(8, room.isAvailability());
+    public String insert(Connection connection, RoomDTO room) throws SQLException {
+        String roomId = UUID.randomUUID().toString();
+        String sql = "INSERT INTO rooms(room_id, landlord_id, title, address, description, area, price, status, availability, created_at) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, roomId);
+            statement.setString(2, room.getLandlordId());
+            statement.setString(3, room.getTitle());
+            statement.setString(4, room.getAddress());
+            statement.setString(5, room.getDescription());
+            statement.setDouble(6, room.getArea());
+            statement.setDouble(7, room.getPrice());
+            statement.setBoolean(8, room.isStatus());
+            statement.setBoolean(9, room.isAvailability());
             statement.executeUpdate();
-            try (ResultSet keys = statement.getGeneratedKeys()) {
-                if (keys.next()) {
-                    int id = keys.getInt(1);
-                    room.setRoomId(id);
-                    return id;
-                }
-            }
+            room.setRoomId(roomId);
+            return roomId;
         }
-        return 0;
     }
 
     public boolean update(RoomDTO room) throws SQLException {
@@ -168,50 +164,50 @@ public class RoomDAL {
             statement.setDouble(5, room.getPrice());
             statement.setBoolean(6, room.isStatus());
             statement.setBoolean(7, room.isAvailability());
-            statement.setInt(8, room.getRoomId());
+            statement.setString(8, room.getRoomId());
             return statement.executeUpdate() > 0;
         }
     }
 
-    public boolean delete(int roomId) throws SQLException {
+    public boolean delete(String roomId) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return delete(connection, roomId);
         }
     }
 
-    public boolean delete(Connection connection, int roomId) throws SQLException {
+    public boolean delete(Connection connection, String roomId) throws SQLException {
         String sql = "DELETE FROM rooms WHERE room_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             return statement.executeUpdate() > 0;
         }
     }
 
-    public boolean approve(int roomId) throws SQLException {
+    public boolean approve(String roomId) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return approve(connection, roomId);
         }
     }
 
-    public boolean approve(Connection connection, int roomId) throws SQLException {
+    public boolean approve(Connection connection, String roomId) throws SQLException {
         String sql = "UPDATE rooms SET status = TRUE WHERE room_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, roomId);
+            statement.setString(1, roomId);
             return statement.executeUpdate() > 0;
         }
     }
 
-    public boolean updateAvailability(int roomId, boolean availability) throws SQLException {
+    public boolean updateAvailability(String roomId, boolean availability) throws SQLException {
         try (Connection connection = DBConnection.getConnection()) {
             return updateAvailability(connection, roomId, availability);
         }
     }
 
-    public boolean updateAvailability(Connection connection, int roomId, boolean availability) throws SQLException {
+    public boolean updateAvailability(Connection connection, String roomId, boolean availability) throws SQLException {
         String sql = "UPDATE rooms SET availability = ? WHERE room_id = ?";
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setBoolean(1, availability);
-            statement.setInt(2, roomId);
+            statement.setString(2, roomId);
             return statement.executeUpdate() > 0;
         }
     }
@@ -273,8 +269,8 @@ public class RoomDAL {
     private RoomDTO mapRoom(ResultSet resultSet) throws SQLException {
         Timestamp createdAt = resultSet.getTimestamp("created_at");
         RoomDTO room = new RoomDTO(
-                resultSet.getInt("room_id"),
-                resultSet.getInt("landlord_id"),
+                resultSet.getString("room_id"),
+                resultSet.getString("landlord_id"),
                 resultSet.getString("title"),
                 resultSet.getString("address"),
                 resultSet.getString("description"),

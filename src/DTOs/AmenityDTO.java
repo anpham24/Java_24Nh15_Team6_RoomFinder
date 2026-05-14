@@ -1,22 +1,22 @@
 package DTOs;
 
 public class AmenityDTO {
-    private int amenityId;
+    private String amenityId;
     private String name;
 
     public AmenityDTO() {
     }
 
-    public AmenityDTO(int amenityId, String name) {
+    public AmenityDTO(String amenityId, String name) {
         this.amenityId = amenityId;
         this.name = name;
     }
 
-    public int getAmenityId() {
+    public String getAmenityId() {
         return amenityId;
     }
 
-    public void setAmenityId(int amenityId) {
+    public void setAmenityId(String amenityId) {
         this.amenityId = amenityId;
     }
 

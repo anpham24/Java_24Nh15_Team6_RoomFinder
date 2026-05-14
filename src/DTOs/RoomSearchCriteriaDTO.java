@@ -17,11 +17,11 @@ public class RoomSearchCriteriaDTO {
     private String keyword;
     private Double minPrice;
     private Double maxPrice;
-    private List<Integer> amenityIds = new ArrayList<>();
+    private List<String> amenityIds = new ArrayList<>();
     private SortBy sortBy = SortBy.NONE;
     private Boolean status;
     private Boolean availability;
-    private Integer landlordId;
+    private String landlordId;
 
     public RoomSearchCriteriaDTO() {
     }
@@ -50,11 +50,11 @@ public class RoomSearchCriteriaDTO {
         this.maxPrice = maxPrice;
     }
 
-    public List<Integer> getAmenityIds() {
+    public List<String> getAmenityIds() {
         return amenityIds;
     }
 
-    public void setAmenityIds(List<Integer> amenityIds) {
+    public void setAmenityIds(List<String> amenityIds) {
         this.amenityIds = amenityIds == null ? new ArrayList<>() : new ArrayList<>(amenityIds);
     }
 
@@ -82,11 +82,11 @@ public class RoomSearchCriteriaDTO {
         this.availability = availability;
     }
 
-    public Integer getLandlordId() {
+    public String getLandlordId() {
         return landlordId;
     }
 
-    public void setLandlordId(Integer landlordId) {
+    public void setLandlordId(String landlordId) {
         this.landlordId = landlordId;
     }
 

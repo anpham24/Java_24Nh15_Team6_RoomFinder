@@ -17,9 +17,9 @@ public class UserBLL {
         return SessionContext.requireLogin();
     }
 
-    public UserDTO getUserById(int userId) throws SQLException {
+    public UserDTO getUserById(String userId) throws SQLException {
         UserDTO currentUser = SessionContext.requireLogin();
-        if (currentUser.getRole() != Role.ADMIN && currentUser.getUserId() != userId) {
+        if (currentUser.getRole() != Role.ADMIN && !currentUser.getUserId().equals(userId)) {
             throw new SecurityException("Quyền truy cập bị từ chối");
         }
         return userDAL.findById(userId);
@@ -41,9 +41,9 @@ public class UserBLL {
         return userDAL.update(user);
     }
 
-    public boolean deleteUser(int userId) throws SQLException {
+    public boolean deleteUser(String userId) throws SQLException {
         UserDTO currentUser = SessionContext.requireRole(Role.ADMIN);
-        if (currentUser.getUserId() == userId) {
+        if (currentUser.getUserId().equals(userId)) {
             throw new IllegalArgumentException("Người dùng quản trị viên hiện tại không thể bị xóa");
         }
 
@@ -70,7 +70,7 @@ public class UserBLL {
     }
 
     private void validateUser(UserDTO user) {
-        if (user == null || user.getUserId() <= 0) {
+        if (user == null || user.getUserId() == null || user.getUserId().isBlank()) {
             throw new IllegalArgumentException("Người dùng hợp lệ là bắt buộc");
         }
         if (user.getName() == null || user.getName().isBlank()) {
