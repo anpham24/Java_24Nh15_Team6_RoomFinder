@@ -112,10 +112,10 @@ CREATE TABLE `rooms` (
 --
 
 INSERT INTO `rooms` (`room_id`, `landlord_id`, `title`, `address`, `description`, `area`, `price`, `status`, `availability`, `created_at`) VALUES
-('5a56c60c-7079-4d60-9d30-42b867307c67', 'e37fa297-54fd-4f29-9faa-f9dff4461777', 'Cho thuê phòng trọ Nguyễn Lương Bằng', '54 Nguyễn Lương Bằng, Liên Chiểu, Đà Nẵng', 'Nhà đẹp, 4 phòng', 15, 1500000, 'APPROVED', 1, '2026-05-14 16:42:44'),
-('6a442de1-029a-477b-8664-e6cddcdae914', 'e37fa297-54fd-4f29-9faa-f9dff4461777', 'Cho thuê phòng 123', '123 Trường Chinh', 'ok', 43, 1230000, 'APPROVED', 1, '2026-05-14 17:50:29'),
-('7e186d11-be57-457d-8fa1-a54df786d245', 'e37fa297-54fd-4f29-9faa-f9dff4461777', 'sfgs', '12', 'èwef', 34, 3230000, 'APPROVED', 1, '2026-05-14 17:51:44'),
-('e87d79ad-90fe-4d5a-abac-a083b45290c2', 'e37fa297-54fd-4f29-9faa-f9dff4461777', 'Phòng 456', '456 Ngô Sĩ Liên', 'sdae', 12, 4560000, 'APPROVED', 1, '2026-05-14 17:51:16');
+('5a56c60c-7079-4d60-9d30-42b867307c67', 'e37fa297-54fd-4f29-9faa-f9dff4461777', '69 Nguyễn Lương Bằng', '69 Nguyễn Lương Bằng, Liên Chiểu, Đà Nẵng', 'Phòng trọ rộng rãi, thoáng mát, an ninh tốt.\nĐầy đủ tiện nghi cơ bản, gần chợ và các trường đại học, thuận tiện đi lại.', 15, 1500000, 'APPROVED', 1, '2026-05-14 16:42:44'),
+('6a442de1-029a-477b-8664-e6cddcdae914', 'e37fa297-54fd-4f29-9faa-f9dff4461777', '300 Nguyễn Lương Bằng', '300 Nguyễn Lương Bằng, Liên Chiểu, Đà Nẵng', 'Không gian sống yên tĩnh, sạch sẽ, có chỗ để xe rộng rãi.\nPhòng mới xây, thiết kế hiện đại, phù hợp cho sinh viên và người đi làm.', 43, 1230000, 'APPROVED', 1, '2026-05-14 17:50:29'),
+('7e186d11-be57-457d-8fa1-a54df786d245', 'e37fa297-54fd-4f29-9faa-f9dff4461777', '12 Âu Cơ', '12 Âu Cơ, Liên Chiểu, Đà Nẵng', 'Phòng trọ giá cả hợp lý, khu dân cư văn minh.\nGần nhiều cửa hàng tiện lợi, trang bị sẵn giường nệm và quạt mát.', 34, 3230000, 'APPROVED', 1, '2026-05-14 17:51:44'),
+('e87d79ad-90fe-4d5a-abac-a083b45290c2', 'e37fa297-54fd-4f29-9faa-f9dff4461777', '76 Ngô Sĩ Liên', '76 Ngô Sĩ Liên, Liên Chiểu, Đà Nẵng', 'Môi trường sống tiện nghi, có bếp nấu ăn riêng biệt.\nHệ thống phòng cháy chữa cháy an toàn, ban công thoáng gió.', 12, 4560000, 'APPROVED', 1, '2026-05-14 17:51:16');
 
 -- --------------------------------------------------------
 
@@ -159,14 +159,14 @@ CREATE TABLE `room_images` (
 --
 
 INSERT INTO `room_images` (`image_id`, `room_id`, `image_path`) VALUES
-(1, '5a56c60c-7079-4d60-9d30-42b867307c67', 'src\\Images\\z7811509240695_58435cc326966e9c9351dbde4474bac2.jpg'),
-(2, '5a56c60c-7079-4d60-9d30-42b867307c67', 'src\\Images\\z7811509245376_252168e39b169ff0575dce422667b794.jpg'),
-(3, '5a56c60c-7079-4d60-9d30-42b867307c67', 'src\\Images\\z7811509251818_e330e5ddd1b499b39068cdc0e1c8b485.jpg'),
-(4, '6a442de1-029a-477b-8664-e6cddcdae914', 'src/Images/z7814698012843_00431fcb682dbd0c059342e2bf50f5cf.jpg'),
-(5, '6a442de1-029a-477b-8664-e6cddcdae914', 'src/Images/z7814698089334_84a6ee66ebb69895e3690064c45be1fd.jpg'),
-(6, '6a442de1-029a-477b-8664-e6cddcdae914', 'src/Images/z7814698130311_8b1643a052e39406e3202a102ee0dcba.jpg'),
-(7, 'e87d79ad-90fe-4d5a-abac-a083b45290c2', 'src/Images/z7812412937823_65ce6d72814e268ee9c2256319c73d7e.jpg'),
-(8, '7e186d11-be57-457d-8fa1-a54df786d245', 'src/Images/WIN_20260331_20_22_56_Pro.jpg');
+(1, '5a56c60c-7079-4d60-9d30-42b867307c67', 'src/Images/room1_image.png'),
+(2, '5a56c60c-7079-4d60-9d30-42b867307c67', 'src/Images/room2_image.png'),
+(3, '5a56c60c-7079-4d60-9d30-42b867307c67', 'src/Images/room3_image.png'),
+(4, '6a442de1-029a-477b-8664-e6cddcdae914', 'src/Images/room4_image.png'),
+(5, '6a442de1-029a-477b-8664-e6cddcdae914', 'src/Images/room5_image.png'),
+(6, '6a442de1-029a-477b-8664-e6cddcdae914', 'src/Images/room6_image.png'),
+(7, 'e87d79ad-90fe-4d5a-abac-a083b45290c2', 'src/Images/room7_image.png'),
+(8, '7e186d11-be57-457d-8fa1-a54df786d245', 'src/Images/room8_image.png');
 
 -- --------------------------------------------------------
 
