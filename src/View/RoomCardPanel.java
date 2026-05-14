@@ -17,6 +17,20 @@ public class RoomCardPanel extends javax.swing.JPanel {
         initComponents();
     }
 
+    // ── Public getters cho Controller ──
+    public javax.swing.JLabel getLbThumb()           { return lbThumb; }
+    public javax.swing.JLabel getLbTitle()           { return lbTitle; }
+    public javax.swing.JLabel getLbPrice()           { return lbPrice; }
+    public javax.swing.JLabel getLbArea()            { return lbArea; }
+    public javax.swing.JLabel getLbAddress()         { return lbAddress; }
+    public javax.swing.JLabel getLbAvailability()    { return lbAvailability; }
+    public javax.swing.JLabel getLbRating()          { return lbRating; }
+    public javax.swing.JLabel getLbStatus()          { return lbStatus; }
+    public javax.swing.JPanel getPnAmenity()         { return pnAmenity; }
+    public javax.swing.JButton getBtnUpdate()        { return btnUpdate; }
+    public javax.swing.JButton getBtnDelete()        { return btnDelete; }
+    public javax.swing.JButton getBtnAvailability()  { return btnAvailability; }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

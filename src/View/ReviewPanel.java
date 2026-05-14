@@ -17,6 +17,11 @@ public class ReviewPanel extends javax.swing.JPanel {
         initComponents();
     }
 
+    // ── Public getters cho Controller ──
+    public javax.swing.JLabel getLbName()    { return lbName; }
+    public javax.swing.JLabel getLbContent() { return lbContent; }
+    public javax.swing.JLabel getLbRating()  { return lbRating; }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

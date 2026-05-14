@@ -17,7 +17,14 @@ public class LoginFrame extends javax.swing.JFrame {
      */
     public LoginFrame() {
         initComponents();
+        new BLL.LoginController(this);
     }
+
+    // ── Public getters cho Controller ──
+    public javax.swing.JTextField getTxtUsername()   { return txtUsername; }
+    public javax.swing.JPasswordField getTxtPassword() { return txtPassword; }
+    public javax.swing.JButton getBtnLogin()         { return btnLogin; }
+    public javax.swing.JButton getBtnNewAccount()    { return btnNewAccount; }
 
     /**
      * This method is called from within the constructor to initialize the form.

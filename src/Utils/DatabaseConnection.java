@@ -33,7 +33,7 @@ public class DatabaseConnection {
     // Constructor private – ngăn khởi tạo từ bên ngoài
     private DatabaseConnection() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("com.mysql.jdbc.Driver");
             this.connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
             LOGGER.info("Kết nối database thành công.");
         } catch (ClassNotFoundException e) {

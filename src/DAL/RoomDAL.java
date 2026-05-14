@@ -197,6 +197,101 @@ public class RoomDAL {
         return list;
     }
 
+    /**
+     * Lấy danh sách phòng theo trạng thái duyệt (status).
+     * @param approved true = đã duyệt, false = chờ duyệt
+     */
+    public List<RoomDTO> getByStatus(boolean approved) {
+        List<RoomDTO> list = new ArrayList<>();
+        String sql = "SELECT * FROM rooms WHERE status = ? ORDER BY created_at DESC";
+        try (PreparedStatement ps = getConn().prepareStatement(sql)) {
+            ps.setBoolean(1, approved);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi lấy phòng theo status.", e);
+        }
+        return list;
+    }
+
+    /**
+     * Lọc phòng nâng cao kết hợp nhiều tiêu chí (dành cho Tenant).
+     * Chỉ lấy phòng đã duyệt (status = TRUE) và còn phòng (availability = TRUE).
+     *
+     * @param keyword          Từ khóa tìm theo title/address (rỗng = bỏ qua)
+     * @param minPrice         Giá tối thiểu
+     * @param maxPrice         Giá tối đa
+     * @param amenityIds       Danh sách amenityId phải có (rỗng = bỏ qua)
+     * @param sortByPrice      Sắp xếp theo giá tăng dần
+     * @param sortByRating     Sắp xếp theo rating (xử lý ở tầng BLL sau khi lấy về)
+     */
+    public List<RoomDTO> filterAdvanced(String keyword, double minPrice, double maxPrice,
+                                        List<String> amenityIds,
+                                        boolean sortByPrice, boolean sortByRating) {
+        List<RoomDTO> list = new ArrayList<>();
+
+        // Xây câu SQL động
+        StringBuilder sb = new StringBuilder(
+                "SELECT DISTINCT r.* FROM rooms r ");
+
+        // JOIN với amenity nếu có điều kiện
+        if (amenityIds != null && !amenityIds.isEmpty()) {
+            sb.append("JOIN room_amenities ra ON r.room_id = ra.room_id ");
+        }
+
+        sb.append("WHERE r.status = TRUE AND r.availability = TRUE ");
+
+        if (keyword != null && !keyword.isEmpty()) {
+            sb.append("AND (r.title LIKE ? OR r.address LIKE ?) ");
+        }
+        if (minPrice > 0) {
+            sb.append("AND r.price >= ? ");
+        }
+        if (maxPrice < Double.MAX_VALUE) {
+            sb.append("AND r.price <= ? ");
+        }
+        if (amenityIds != null && !amenityIds.isEmpty()) {
+            sb.append("AND ra.amenity_id IN (");
+            for (int i = 0; i < amenityIds.size(); i++) {
+                sb.append(i == 0 ? "?" : ",?");
+            }
+            sb.append(") ");
+        }
+
+        // Sắp xếp (rating xử lý ở BLL, ở đây chỉ hỗ trợ sort by price)
+        if (sortByPrice) {
+            sb.append("ORDER BY r.price ASC");
+        } else {
+            sb.append("ORDER BY r.created_at DESC");
+        }
+
+        try (PreparedStatement ps = getConn().prepareStatement(sb.toString())) {
+            int idx = 1;
+            if (keyword != null && !keyword.isEmpty()) {
+                String param = "%" + keyword + "%";
+                ps.setString(idx++, param);
+                ps.setString(idx++, param);
+            }
+            if (minPrice > 0)              ps.setDouble(idx++, minPrice);
+            if (maxPrice < Double.MAX_VALUE) ps.setDouble(idx++, maxPrice);
+            if (amenityIds != null) {
+                for (String id : amenityIds) ps.setString(idx++, id);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    RoomDTO room = mapRow(rs);
+                    loadDetails(room);
+                    list.add(room);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi filter nâng cao.", e);
+        }
+        return list;
+    }
+
     // ─────────────────────────────────────────────
     // UPDATE
     // ─────────────────────────────────────────────

@@ -12,14 +12,42 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RoomDetailFrame.class.getName());
 
-    /**
-     * Creates new form RoomDetailFrame
-     */
-    public RoomDetailFrame() {
+    private DTO.UserDTO currentUser;
+    private DTO.RoomDTO room;
+
+    public RoomDetailFrame(DTO.RoomDTO room, DTO.UserDTO user) {
+        this.room = room;
+        this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        new BLL.RoomDetailController(this, room, user);
     }
+
+    public RoomDetailFrame() { this(null, null); }
+
+    // ── Public getters cho Controller ──
+    public DTO.UserDTO getCurrentUser()                  { return currentUser; }
+    public DTO.RoomDTO getRoom()                         { return room; }
+    public javax.swing.JLabel getLbMainImage()           { return lbMainImage; }
+    public javax.swing.JPanel getPnImageList()           { return pnImageList; }
+    public javax.swing.JLabel getLbTitle()               { return lbTitle; }
+    public javax.swing.JLabel getLbAvailability()        { return lbAvailability; }
+    public javax.swing.JLabel getLbRating()              { return lbRating; }
+    public javax.swing.JLabel getLbStatus()              { return lbStatus; }
+    public javax.swing.JLabel getLbDescription()         { return lbDescription; }
+    public javax.swing.JPanel getPnAmenity()             { return pnAmenity; }
+    public javax.swing.JLabel getLbAddress()             { return lbAddress; }
+    public javax.swing.JLabel getLbPrice()               { return lbPrice; }
+    public javax.swing.JLabel getLbArea()                { return lbArea; }
+    public javax.swing.JLabel getLbPhone()               { return lbPhone; }
+    public javax.swing.JButton getBtnUpdate()            { return btnUpdate; }
+    public javax.swing.JButton getBtnDelete()            { return btnDelete; }
+    public javax.swing.JButton getBtnAvailability()      { return btnAvailability; }
+    public javax.swing.JPanel getPnReviewList()          { return pnReviewList; }
+    public javax.swing.JTextField getTxtReview()         { return txtReview; }
+    public javax.swing.JComboBox<String> getCboRating()  { return cboRating; }
+    public javax.swing.JButton getBtnSubmit()            { return btnSubmit; }
 
     /**
      * This method is called from within the constructor to initialize the form.

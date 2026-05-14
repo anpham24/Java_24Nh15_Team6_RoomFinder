@@ -12,14 +12,31 @@ public class TenantMainFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(TenantMainFrame.class.getName());
 
-    /**
-     * Creates new form TenantMainFrame
-     */
-    public TenantMainFrame() {
+    private DTO.UserDTO currentUser;
+
+    public TenantMainFrame(DTO.UserDTO user) {
+        this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        new BLL.TenantController(this, currentUser);
     }
+
+    /** Constructor mặc định (giữ để Netbeans form editor không báo lỗi) */
+    public TenantMainFrame() { this(null); }
+
+    // ── Public getters cho Controller ──
+    public DTO.UserDTO getCurrentUser()          { return currentUser; }
+    public javax.swing.JTextField getTxtSearch() { return txtSearch; }
+    public javax.swing.JTextField getTxtMinPrice(){ return txtMinPrice; }
+    public javax.swing.JTextField getTxtMaxPrice(){ return txtMaxPrice; }
+    public javax.swing.JRadioButton getRdoPrice() { return rdoPrice; }
+    public javax.swing.JRadioButton getRdoReview(){ return rdoReview; }
+    public javax.swing.JButton getBtnSearch()    { return btnSearch; }
+    public javax.swing.JButton getBtnApply()     { return btnApply; }
+    public javax.swing.JButton getBtnLogout()    { return btnLogout; }
+    public javax.swing.JPanel getPnAmenity()     { return pnAmenity; }
+    public javax.swing.JPanel getPnRoomList()    { return pnRoomList; }
 
     /**
      * This method is called from within the constructor to initialize the form.

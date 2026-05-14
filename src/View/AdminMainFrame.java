@@ -12,14 +12,44 @@ public class AdminMainFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(AdminMainFrame.class.getName());
 
-    /**
-     * Creates new form AdminMainFrame
-     */
-    public AdminMainFrame() {
+    private DTO.UserDTO currentUser;
+
+    public AdminMainFrame(DTO.UserDTO user) {
+        this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        new BLL.AdminController(this, currentUser);
     }
+
+    public AdminMainFrame() { this(null); }
+
+    // ── Public getters cho Controller ──
+    public DTO.UserDTO getCurrentUser()              { return currentUser; }
+    public javax.swing.JButton getBtnLogout()        { return btnLogout; }
+    // Tab 1
+    public javax.swing.JTable getTbApproveRoom()     { return tbApproveRoom; }
+    public javax.swing.JButton getBtnRoomDetailTab1(){ return btnRoomDetail_tab1; }
+    public javax.swing.JButton getBtnApproveRoom()   { return btnApproveRoom; }
+    public javax.swing.JButton getBtnDeclineRoom()   { return btnDeclineRoom; }
+    // Tab 2
+    public javax.swing.JTable getTbRoomManage()      { return tbRoomManage; }
+    public javax.swing.JTextField getTxtSearchRoom() { return txtSearchRoom; }
+    public javax.swing.JComboBox<String> getCboStatus(){ return cboStatus; }
+    public javax.swing.JButton getBtnSearchRoom()    { return btnSearchRoom; }
+    public javax.swing.JButton getBtnRoomDetailTab2(){ return btnRoomDetail_tab2; }
+    public javax.swing.JButton getBtnDeleteRoom()    { return btnDeleteRoom; }
+    // Tab 3
+    public javax.swing.JTable getTbUserManage()      { return tbUserManage; }
+    public javax.swing.JTextField getTxtSearchUser() { return txtSearchUser; }
+    public javax.swing.JComboBox<String> getCboRole(){ return cboRole; }
+    public javax.swing.JButton getBtnSearchUser()    { return btnSearchUser; }
+    public javax.swing.JButton getBtnDeleteUser()    { return btnDeleteUser; }
+    // Tab 4
+    public javax.swing.JTable getTbAmenityManage()   { return tbAmenityManage; }
+    public javax.swing.JButton getBtnAddAmenity()    { return btnAddAmenity; }
+    public javax.swing.JButton getBtnUpdateAmenity() { return btnUpdateAmenity; }
+    public javax.swing.JButton getBtnDeleteAmenity() { return btnDeleteAmenity; }
 
     /**
      * This method is called from within the constructor to initialize the form.

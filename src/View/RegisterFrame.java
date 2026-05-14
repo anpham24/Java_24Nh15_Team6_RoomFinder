@@ -17,7 +17,18 @@ public class RegisterFrame extends javax.swing.JFrame {
      */
     public RegisterFrame() {
         initComponents();
+        new BLL.RegisterController(this);
     }
+
+    // ── Public getters cho Controller ──
+    public javax.swing.JTextField getTxtName()         { return txtName; }
+    public javax.swing.JTextField getTxtPhone()        { return txtPhone; }
+    public javax.swing.JTextField getTxtUsername()     { return txtUsername; }
+    public javax.swing.JPasswordField getTxtPassword() { return txtPassword; }
+    public javax.swing.JRadioButton getRdoTenant()     { return rdoTenant; }
+    public javax.swing.JRadioButton getRdoLandlord()   { return rdoLandlord; }
+    public javax.swing.JButton getBtnRegister()        { return btnRegister; }
+    public javax.swing.JButton getBtnExit()            { return btnExit; }
 
     /**
      * This method is called from within the constructor to initialize the form.

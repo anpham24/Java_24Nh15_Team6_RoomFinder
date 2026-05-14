@@ -12,14 +12,23 @@ public class LandlordMainFrame extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LandlordMainFrame.class.getName());
 
-    /**
-     * Creates new form LandlordMainFrame
-     */
-    public LandlordMainFrame() {
+    private DTO.UserDTO currentUser;
+
+    public LandlordMainFrame(DTO.UserDTO user) {
+        this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
+        new BLL.LandlordController(this, currentUser);
     }
+
+    public LandlordMainFrame() { this(null); }
+
+    // ── Public getters cho Controller ──
+    public DTO.UserDTO getCurrentUser()       { return currentUser; }
+    public javax.swing.JButton getBtnLogout() { return btnLogout; }
+    public javax.swing.JButton getBtnAddRoom(){ return btnAddRoom; }
+    public javax.swing.JPanel getPnRoomList() { return pnRoomList; }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -36,7 +45,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         pnRoomList = new javax.swing.JPanel();
-        jButton1 = new javax.swing.JButton();
+        btnAddRoom = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setPreferredSize(new java.awt.Dimension(1280, 720));
@@ -72,20 +81,10 @@ public class LandlordMainFrame extends javax.swing.JFrame {
 
         jLabel2.setText("Quản lý phòng trọ");
 
-        javax.swing.GroupLayout pnRoomListLayout = new javax.swing.GroupLayout(pnRoomList);
-        pnRoomList.setLayout(pnRoomListLayout);
-        pnRoomListLayout.setHorizontalGroup(
-            pnRoomListLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 1266, Short.MAX_VALUE)
-        );
-        pnRoomListLayout.setVerticalGroup(
-            pnRoomListLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 672, Short.MAX_VALUE)
-        );
-
+        pnRoomList.setLayout(new java.awt.GridLayout(0, 3, 20, 20));
         jScrollPane1.setViewportView(pnRoomList);
 
-        jButton1.setText("Thêm phòng mới");
+        btnAddRoom.setText("Thêm phòng mới");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -98,7 +97,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
                         .addGap(15, 15, 15)
                         .addComponent(jLabel2)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jButton1))
+                        .addComponent(btnAddRoom))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1)))
@@ -111,7 +110,7 @@ public class LandlordMainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jButton1))
+                    .addComponent(btnAddRoom))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 667, Short.MAX_VALUE)
                 .addContainerGap())
@@ -146,8 +145,8 @@ public class LandlordMainFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAddRoom;
     private javax.swing.JButton btnLogout;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
