@@ -9,10 +9,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * DAL thao tác với bảng accounts.
- * Cung cấp các hàm CRUD và xác thực đăng nhập.
- */
 public class AccountDAL {
 
     private static final Logger LOGGER = Logger.getLogger(AccountDAL.class.getName());
@@ -21,14 +17,6 @@ public class AccountDAL {
         return DatabaseConnection.getInstance().getConnection();
     }
 
-    // ─────────────────────────────────────────────
-    // CREATE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Thêm tài khoản mới vào database.
-     * @return true nếu thêm thành công.
-     */
     public boolean insert(AccountDTO account) {
         String sql = "INSERT INTO accounts (username, password) VALUES (?, ?)";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -41,30 +29,18 @@ public class AccountDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // READ
-    // ─────────────────────────────────────────────
-
-    /**
-     * Lấy tất cả tài khoản.
-     */
     public List<AccountDTO> getAll() {
         List<AccountDTO> list = new ArrayList<>();
         String sql = "SELECT username, password FROM accounts";
         try (Statement st = getConn().createStatement();
              ResultSet rs = st.executeQuery(sql)) {
-            while (rs.next()) {
-                list.add(mapRow(rs));
-            }
+            while (rs.next()) list.add(mapRow(rs));
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Lỗi lấy danh sách tài khoản.", e);
         }
         return list;
     }
 
-    /**
-     * Tìm tài khoản theo username.
-     */
     public AccountDTO getByUsername(String username) {
         String sql = "SELECT username, password FROM accounts WHERE username = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -78,10 +54,6 @@ public class AccountDAL {
         return null;
     }
 
-    /**
-     * Kiểm tra đăng nhập (so sánh username + password).
-     * @return true nếu thông tin hợp lệ.
-     */
     public boolean login(String username, String password) {
         String sql = "SELECT 1 FROM accounts WHERE username = ? AND password = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -96,14 +68,6 @@ public class AccountDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // UPDATE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Cập nhật mật khẩu của tài khoản.
-     * @return true nếu cập nhật thành công.
-     */
     public boolean updatePassword(String username, String newPassword) {
         String sql = "UPDATE accounts SET password = ? WHERE username = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -116,14 +80,6 @@ public class AccountDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // DELETE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Xóa tài khoản theo username (CASCADE sẽ xóa user liên quan).
-     * @return true nếu xóa thành công.
-     */
     public boolean delete(String username) {
         String sql = "DELETE FROM accounts WHERE username = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -134,10 +90,6 @@ public class AccountDAL {
             return false;
         }
     }
-
-    // ─────────────────────────────────────────────
-    // Helper
-    // ─────────────────────────────────────────────
 
     private AccountDTO mapRow(ResultSet rs) throws SQLException {
         return new AccountDTO(

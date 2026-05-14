@@ -1,338 +1,87 @@
 package BLL;
 
+import DAL.AccountDAL;
 import DAL.AmenityDAL;
 import DAL.RoomDAL;
 import DAL.UserDAL;
 import DTO.AmenityDTO;
 import DTO.RoomDTO;
 import DTO.UserDTO;
-import View.AdminMainFrame;
-import View.LoginFrame;
-import View.RoomDetailFrame;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
-/**
- * Controller cho màn hình Admin với 4 tab:
- * 1. Duyệt bài
- * 2. Quản lý bài đăng
- * 3. Quản lý người dùng
- * 4. Quản lý tiện nghi
- */
 public class AdminController {
 
-    private final AdminMainFrame view;
-    private final UserDTO currentUser;
     private final RoomDAL    roomDAL    = new RoomDAL();
     private final UserDAL    userDAL    = new UserDAL();
     private final AmenityDAL amenityDAL = new AmenityDAL();
+    private final AccountDAL accountDAL = new AccountDAL();
 
-    public AdminController(AdminMainFrame view, UserDTO user) {
-        this.view = view;
-        this.currentUser = user;
-
-        setupTableModels();       // phải gọi đầu tiên trước khi nạp dữ liệu
-        loadApproveTab();
-        loadRoomManageTab(null, null);
-        loadUserManageTab(null, null);
-        loadAmenityTab();
-        initEvents();
+    public List<RoomDTO> getPendingRooms() {
+        return roomDAL.getByStatus("PENDING");
     }
 
-    /**
-     * Override model của tất cả các bảng để:
-     * 1. Tất cả cột dùng Object.class → tránh lỗi ClassCastException
-     *    (Netbeans có thể tự set cột "Giá" là Double, nhưng ta truyền String vào)
-     * 2. Ngăn người dùng chỉnh sửa đd trực tiếp trong bảng
-     */
-    private void setupTableModels() {
-        // Tab 1 – Chờ duyệt
-        view.getTbApproveRoom().setModel(new javax.swing.table.DefaultTableModel(
-            new String[]{"ID", "Tiêu đề", "Chủ trọ", "Ngày đăng", "Trạng thái"}, 0) {
-            @Override public Class<?> getColumnClass(int c) { return Object.class; }
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        });
-
-        // Tab 2 – Quản lý bài đăng
-        view.getTbRoomManage().setModel(new javax.swing.table.DefaultTableModel(
-            new String[]{"ID", "Tiêu đề", "Chủ trọ", "Giá thuê", "Trạng thái"}, 0) {
-            @Override public Class<?> getColumnClass(int c) { return Object.class; }
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        });
-
-        // Tab 3 – Quản lý người dùng (bỏ cột "Trạng thái" theo yêu cầu)
-        view.getTbUserManage().setModel(new javax.swing.table.DefaultTableModel(
-            new String[]{"ID", "Tên", "Số điện thoại", "Vai trò"}, 0) {
-            @Override public Class<?> getColumnClass(int c) { return Object.class; }
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        });
-
-        // Tab 4 – Quản lý tiện nghi
-        view.getTbAmenityManage().setModel(new javax.swing.table.DefaultTableModel(
-            new String[]{"ID", "Tên tiện nghi"}, 0) {
-            @Override public Class<?> getColumnClass(int c) { return Object.class; }
-            @Override public boolean isCellEditable(int r, int c) { return false; }
-        });
+    public boolean updateRoomStatus(String roomId, String status) {
+        return roomDAL.updateStatus(roomId, status);
     }
 
-    // ═══════════════════════════════════════════════════
-    // TAB 1 – Duyệt bài
-    // ═══════════════════════════════════════════════════
-    private void loadApproveTab() {
-        DefaultTableModel model = (DefaultTableModel) view.getTbApproveRoom().getModel();
-        model.setRowCount(0);
-
-        List<RoomDTO> pending = roomDAL.getByStatus("PENDING");
-        for (RoomDTO r : pending) {
-            UserDTO landlord = userDAL.getById(r.getLandlordId());
-            String landlordName = landlord != null ? landlord.getName() : r.getLandlordId();
-            model.addRow(new Object[]{
-                r.getRoomId(), r.getTitle(), landlordName,
-                r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "",
-                "Chờ duyệt"
-            });
-        }
+    public UserDTO getUserById(String userId) {
+        return userDAL.getById(userId);
     }
 
-    // ═══════════════════════════════════════════════════
-    // TAB 2 – Quản lý bài đăng
-    // ═══════════════════════════════════════════════════
-    private void loadRoomManageTab(String keyword, String statusFilter) {
-        DefaultTableModel model = (DefaultTableModel) view.getTbRoomManage().getModel();
-        model.setRowCount(0);
-
-        List<RoomDTO> rooms = roomDAL.getAll();
-        for (RoomDTO r : rooms) {
-            // Lọc theo từ khóa
-            if (keyword != null && !keyword.isEmpty()) {
-                if (!r.getTitle().toLowerCase().contains(keyword.toLowerCase())
-                        && !r.getAddress().toLowerCase().contains(keyword.toLowerCase())) continue;
-            }
-            // Lọc theo status (String ENUM)
-            if (statusFilter != null && !statusFilter.equals(r.getStatus())) continue;
-
-            UserDTO landlord = userDAL.getById(r.getLandlordId());
-            String landlordName = landlord != null ? landlord.getName() : r.getLandlordId();
-            model.addRow(new Object[]{
-                r.getRoomId(), r.getTitle(), landlordName,
-                String.format("%,.0f", r.getPrice()),
-                statusToLabel(r.getStatus())
-            });
-        }
+    public RoomDTO getRoomById(String roomId) {
+        return roomDAL.getById(roomId);
     }
 
-    /** Chuyển ENUM status sang nhãn tiếng Việt */
-    private String statusToLabel(String status) {
-        if (status == null) return "Không rõ";
-        return switch (status) {
-            case "APPROVED"  -> "Đã duyệt";
-            case "DECLINED"  -> "Bị từ chối";
-            default          -> "Chờ duyệt";  // PENDING
-        };
+    public List<RoomDTO> searchRooms(String keyword, String statusFilter) {
+        return roomDAL.getAll().stream()
+            .filter(r -> {
+                if (keyword != null && !keyword.isEmpty())
+                    if (!r.getTitle().toLowerCase().contains(keyword.toLowerCase())
+                            && !r.getAddress().toLowerCase().contains(keyword.toLowerCase())) return false;
+                if (statusFilter != null && !statusFilter.equals(r.getStatus())) return false;
+                return true;
+            })
+            .collect(Collectors.toList());
     }
 
-    // ═══════════════════════════════════════════════════
-    // TAB 3 – Quản lý người dùng
-    // ═══════════════════════════════════════════════════
-    private void loadUserManageTab(String keyword, UserDTO.Role roleFilter) {
-        DefaultTableModel model = (DefaultTableModel) view.getTbUserManage().getModel();
-        model.setRowCount(0);
-
-        List<UserDTO> users = userDAL.getAll();
-        for (UserDTO u : users) {
-            if (u.getRole() == UserDTO.Role.ADMIN) continue;
-
-            if (keyword != null && !keyword.isEmpty()) {
-                if (!u.getName().toLowerCase().contains(keyword.toLowerCase())
-                        && !u.getUsername().toLowerCase().contains(keyword.toLowerCase())) continue;
-            }
-            if (roleFilter != null && u.getRole() != roleFilter) continue;
-
-            model.addRow(new Object[]{
-                u.getUserId(), u.getName(), u.getPhoneNumber(),
-                u.getRole() == UserDTO.Role.LANDLORD ? "Chủ trọ" : "Người thuê"
-            });
-        }
+    public boolean deleteRoom(String roomId) {
+        return roomDAL.delete(roomId);
     }
 
-    // ═══════════════════════════════════════════════════
-    // TAB 4 – Quản lý tiện nghi
-    // ═══════════════════════════════════════════════════
-    private void loadAmenityTab() {
-        DefaultTableModel model = (DefaultTableModel) view.getTbAmenityManage().getModel();
-        model.setRowCount(0);
-
-        for (AmenityDTO a : amenityDAL.getAll()) {
-            model.addRow(new Object[]{ a.getAmenityId(), a.getName() });
-        }
+    public List<UserDTO> searchUsers(String keyword, UserDTO.Role roleFilter) {
+        return userDAL.getAll().stream()
+            .filter(u -> u.getRole() != UserDTO.Role.ADMIN)
+            .filter(u -> {
+                if (keyword != null && !keyword.isEmpty())
+                    if (!u.getName().toLowerCase().contains(keyword.toLowerCase())
+                            && !u.getUsername().toLowerCase().contains(keyword.toLowerCase())) return false;
+                if (roleFilter != null && u.getRole() != roleFilter) return false;
+                return true;
+            })
+            .collect(Collectors.toList());
     }
 
-    // ═══════════════════════════════════════════════════
-    // Events
-    // ═══════════════════════════════════════════════════
-    private void initEvents() {
-        view.getBtnLogout().addActionListener(e -> handleLogout());
-
-        // Tab 1
-        view.getBtnRoomDetailTab1().addActionListener(e -> openRoomDetailFromTable(view.getTbApproveRoom()));
-        view.getBtnApproveRoom().addActionListener(e -> handleApprove(true));
-        view.getBtnDeclineRoom().addActionListener(e -> handleApprove(false));
-
-        // Tab 2
-        view.getBtnSearchRoom().addActionListener(e -> handleSearchRoom());
-        view.getBtnRoomDetailTab2().addActionListener(e -> openRoomDetailFromTable(view.getTbRoomManage()));
-        view.getBtnDeleteRoom().addActionListener(e -> handleDeleteRoom());
-
-        // Tab 3
-        view.getBtnSearchUser().addActionListener(e -> handleSearchUser());
-        view.getBtnDeleteUser().addActionListener(e -> handleDeleteUser());
-
-        // Tab 4
-        view.getBtnAddAmenity().addActionListener(e -> handleAddAmenity());
-        view.getBtnUpdateAmenity().addActionListener(e -> handleUpdateAmenity());
-        view.getBtnDeleteAmenity().addActionListener(e -> handleDeleteAmenity());
+    public boolean deleteUser(String userId) {
+        UserDTO user = userDAL.getById(userId);
+        if (user == null) return false;
+        return accountDAL.delete(user.getUsername());
     }
 
-    // ─────────────────────────────────────────────
-    // Tab 1 handlers
-    // ─────────────────────────────────────────────
-    private void handleApprove(boolean approve) {
-        int row = view.getTbApproveRoom().getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
-
-        String roomId = (String) view.getTbApproveRoom().getValueAt(row, 0);
-        String newStatus = approve ? "APPROVED" : "DECLINED";
-        if (roomDAL.updateStatus(roomId, newStatus)) {
-            JOptionPane.showMessageDialog(view, approve ? "Đã duyệt bài." : "Đã từ chối bài.");
-            loadApproveTab();
-            loadRoomManageTab(null, null);
-        }
+    public List<AmenityDTO> getAllAmenities() {
+        return amenityDAL.getAll();
     }
 
-    // ─────────────────────────────────────────────
-    // Tab 2 handlers
-    // ─────────────────────────────────────────────
-    private void handleSearchRoom() {
-        String keyword = view.getTxtSearchRoom().getText().trim();
-        String statusStr = (String) view.getCboStatus().getSelectedItem();
-        // Map nhãn tiếng Việt → ENUM string
-        String statusFilter = switch (statusStr) {
-            case "Đã duyệt"   -> "APPROVED";
-            case "Chờ duyệt" -> "PENDING";
-            case "Bị từ chối" -> "DECLINED";
-            default           -> null;   // Tất cả
-        };
-        loadRoomManageTab(keyword, statusFilter);
+    public boolean addAmenity(String name) {
+        return amenityDAL.insert(new AmenityDTO(UUID.randomUUID().toString(), name));
     }
 
-    private void handleDeleteRoom() {
-        int row = view.getTbRoomManage().getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
-
-        String roomId = (String) view.getTbRoomManage().getValueAt(row, 0);
-        int confirm = JOptionPane.showConfirmDialog(view, "Bạn có chắc muốn xóa bài đăng này?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (roomDAL.delete(roomId)) {
-                JOptionPane.showMessageDialog(view, "Đã xóa bài đăng.");
-                loadRoomManageTab(null, null);
-                loadApproveTab();
-            }
-        }
+    public boolean updateAmenity(String amenityId, String name) {
+        return amenityDAL.update(new AmenityDTO(amenityId, name));
     }
 
-    private void openRoomDetailFromTable(JTable table) {
-        int row = table.getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
-
-        String roomId = (String) table.getValueAt(row, 0);
-        RoomDTO room = roomDAL.getById(roomId);
-        if (room != null) {
-            new RoomDetailFrame(room, currentUser).setVisible(true);
-        }
-    }
-
-    // ─────────────────────────────────────────────
-    // Tab 3 handlers
-    // ─────────────────────────────────────────────
-    private void handleSearchUser() {
-        String keyword = view.getTxtSearchUser().getText().trim();
-        String roleStr = (String) view.getCboRole().getSelectedItem();
-        UserDTO.Role roleFilter = "Chủ trọ".equals(roleStr) ? UserDTO.Role.LANDLORD : UserDTO.Role.TENANT;
-        loadUserManageTab(keyword, roleFilter);
-    }
-
-    private void handleDeleteUser() {
-        int row = view.getTbUserManage().getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
-
-        String userId = (String) view.getTbUserManage().getValueAt(row, 0);
-        int confirm = JOptionPane.showConfirmDialog(view, "Bạn có chắc muốn xóa người dùng này?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-        if (confirm == JOptionPane.YES_OPTION) {
-            UserDTO user = userDAL.getById(userId);
-            if (user != null && new DAL.AccountDAL().delete(user.getUsername())) {
-                JOptionPane.showMessageDialog(view, "Đã xóa người dùng.");
-                loadUserManageTab(null, null);
-            } else {
-                JOptionPane.showMessageDialog(view, "Xóa thất bại.", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        }
-    }
-
-    // ─────────────────────────────────────────────
-    // Tab 4 handlers
-    // ─────────────────────────────────────────────
-    private void handleAddAmenity() {
-        String name = JOptionPane.showInputDialog(view, "Nhập tên tiện nghi mới:");
-        if (name != null && !name.trim().isEmpty()) {
-            AmenityDTO a = new AmenityDTO(java.util.UUID.randomUUID().toString(), name.trim());
-            if (amenityDAL.insert(a)) {
-                JOptionPane.showMessageDialog(view, "Đã thêm tiện nghi.");
-                loadAmenityTab();
-            }
-        }
-    }
-
-    private void handleUpdateAmenity() {
-        int row = view.getTbAmenityManage().getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
-
-        String amenityId   = (String) view.getTbAmenityManage().getValueAt(row, 0);
-        String currentName = (String) view.getTbAmenityManage().getValueAt(row, 1);
-        String newName = JOptionPane.showInputDialog(view, "Sửa tên tiện nghi:", currentName);
-        if (newName != null && !newName.trim().isEmpty()) {
-            AmenityDTO a = new AmenityDTO(amenityId, newName.trim());
-            if (amenityDAL.update(a)) {
-                JOptionPane.showMessageDialog(view, "Đã cập nhật tiện nghi.");
-                loadAmenityTab();
-            }
-        }
-    }
-
-    private void handleDeleteAmenity() {
-        int row = view.getTbAmenityManage().getSelectedRow();
-        if (row < 0) { JOptionPane.showMessageDialog(view, "Vui lòng chọn một dòng."); return; }
-
-        String amenityId = (String) view.getTbAmenityManage().getValueAt(row, 0);
-        int confirm = JOptionPane.showConfirmDialog(view, "Bạn có chắc muốn xóa tiện nghi này?",
-                "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            if (amenityDAL.delete(amenityId)) {
-                JOptionPane.showMessageDialog(view, "Đã xóa tiện nghi.");
-                loadAmenityTab();
-            }
-        }
-    }
-
-    private void handleLogout() {
-        int confirm = JOptionPane.showConfirmDialog(view, "Bạn có chắc muốn đăng xuất?",
-                "Đăng xuất", JOptionPane.YES_NO_OPTION);
-        if (confirm == JOptionPane.YES_OPTION) {
-            view.dispose();
-            new LoginFrame().setVisible(true);
-        }
+    public boolean deleteAmenity(String amenityId) {
+        return amenityDAL.delete(amenityId);
     }
 }

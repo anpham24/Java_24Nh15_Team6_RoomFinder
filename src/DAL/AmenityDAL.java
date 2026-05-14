@@ -9,9 +9,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * DAL thao tác với bảng amenities.
- */
 public class AmenityDAL {
 
     private static final Logger LOGGER = Logger.getLogger(AmenityDAL.class.getName());
@@ -19,10 +16,6 @@ public class AmenityDAL {
     private Connection getConn() {
         return DatabaseConnection.getInstance().getConnection();
     }
-
-    // ─────────────────────────────────────────────
-    // CREATE
-    // ─────────────────────────────────────────────
 
     public boolean insert(AmenityDTO amenity) {
         String sql = "INSERT INTO amenities (amenity_id, name) VALUES (?, ?)";
@@ -35,10 +28,6 @@ public class AmenityDAL {
             return false;
         }
     }
-
-    // ─────────────────────────────────────────────
-    // READ
-    // ─────────────────────────────────────────────
 
     public List<AmenityDTO> getAll() {
         List<AmenityDTO> list = new ArrayList<>();
@@ -65,9 +54,6 @@ public class AmenityDAL {
         return null;
     }
 
-    /**
-     * Lấy danh sách tiện nghi của một phòng cụ thể.
-     */
     public List<AmenityDTO> getByRoomId(String roomId) {
         List<AmenityDTO> list = new ArrayList<>();
         String sql = "SELECT a.amenity_id, a.name FROM amenities a "
@@ -84,10 +70,6 @@ public class AmenityDAL {
         return list;
     }
 
-    // ─────────────────────────────────────────────
-    // UPDATE
-    // ─────────────────────────────────────────────
-
     public boolean update(AmenityDTO amenity) {
         String sql = "UPDATE amenities SET name = ? WHERE amenity_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -100,10 +82,6 @@ public class AmenityDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // DELETE
-    // ─────────────────────────────────────────────
-
     public boolean delete(String amenityId) {
         String sql = "DELETE FROM amenities WHERE amenity_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -114,10 +92,6 @@ public class AmenityDAL {
             return false;
         }
     }
-
-    // ─────────────────────────────────────────────
-    // Helper
-    // ─────────────────────────────────────────────
 
     private AmenityDTO mapRow(ResultSet rs) throws SQLException {
         return new AmenityDTO(

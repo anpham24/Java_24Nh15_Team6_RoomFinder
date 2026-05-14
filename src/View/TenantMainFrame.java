@@ -14,29 +14,133 @@ public class TenantMainFrame extends javax.swing.JFrame {
 
     private DTO.UserDTO currentUser;
 
+    private final BLL.TenantController tenantBLL = new BLL.TenantController();
+    private final java.util.List<javax.swing.JCheckBox> amenityCheckboxes = new java.util.ArrayList<>();
+
     public TenantMainFrame(DTO.UserDTO user) {
         this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
-        new BLL.TenantController(this, currentUser);
+        initAmenityCheckboxes();
+        initEvents();
+        handleApply();
+        if (currentUser == null) btnLogout.setText("Đăng nhập");
     }
 
     /** Constructor mặc định (giữ để Netbeans form editor không báo lỗi) */
     public TenantMainFrame() { this(null); }
 
-    // ── Public getters cho Controller ──
-    public DTO.UserDTO getCurrentUser()          { return currentUser; }
-    public javax.swing.JTextField getTxtSearch() { return txtSearch; }
-    public javax.swing.JTextField getTxtMinPrice(){ return txtMinPrice; }
-    public javax.swing.JTextField getTxtMaxPrice(){ return txtMaxPrice; }
-    public javax.swing.JRadioButton getRdoPrice() { return rdoPrice; }
-    public javax.swing.JRadioButton getRdoReview(){ return rdoReview; }
-    public javax.swing.JButton getBtnSearch()    { return btnSearch; }
-    public javax.swing.JButton getBtnApply()     { return btnApply; }
-    public javax.swing.JButton getBtnLogout()    { return btnLogout; }
-    public javax.swing.JPanel getPnAmenity()     { return pnAmenity; }
-    public javax.swing.JPanel getPnRoomList()    { return pnRoomList; }
+    public DTO.UserDTO getCurrentUser() { return currentUser; }
+
+    private void initAmenityCheckboxes() {
+        pnAmenity.removeAll();
+        amenityCheckboxes.clear();
+        for (DTO.AmenityDTO a : tenantBLL.getAllAmenities()) {
+            javax.swing.JCheckBox cb = new javax.swing.JCheckBox(a.getName());
+            cb.putClientProperty("amenityId", a.getAmenityId());
+            amenityCheckboxes.add(cb);
+            pnAmenity.add(cb);
+        }
+        pnAmenity.revalidate();
+    }
+
+    private void initEvents() {
+        btnSearch.addActionListener(e -> handleSearch());
+        btnApply.addActionListener(e -> handleApply());
+        btnLogout.addActionListener(e -> handleLogout());
+        txtSearch.addActionListener(e -> handleSearch());
+    }
+
+    private void handleSearch() {
+        String keyword = txtSearch.getText().trim();
+        loadRooms(tenantBLL.getRooms(keyword, 0, Double.MAX_VALUE,
+                java.util.Collections.emptyList(), false, false));
+    }
+
+    private void handleApply() {
+        String keyword  = txtSearch.getText().trim();
+        double minPrice = parseDouble(txtMinPrice.getText().trim(), 0);
+        double maxPrice = parseDouble(txtMaxPrice.getText().trim(), Double.MAX_VALUE);
+        java.util.List<String> ids = new java.util.ArrayList<>();
+        for (javax.swing.JCheckBox cb : amenityCheckboxes)
+            if (cb.isSelected()) ids.add((String) cb.getClientProperty("amenityId"));
+        loadRooms(tenantBLL.getRooms(keyword, minPrice, maxPrice, ids,
+                rdoPrice.isSelected(), rdoReview.isSelected()));
+    }
+
+    private void handleLogout() {
+        if (currentUser == null) {
+            dispose();
+            new LoginFrame().setVisible(true);
+            return;
+        }
+        int c = javax.swing.JOptionPane.showConfirmDialog(this,
+                "Bạn có chắc muốn đăng xuất?", "Đăng xuất",
+                javax.swing.JOptionPane.YES_NO_OPTION);
+        if (c == javax.swing.JOptionPane.YES_OPTION) {
+            dispose();
+            new TenantMainFrame().setVisible(true);
+        }
+    }
+
+    private void loadRooms(java.util.List<DTO.RoomDTO> rooms) {
+        pnRoomList.removeAll();
+        for (DTO.RoomDTO room : rooms)
+            pnRoomList.add(buildCard(room, tenantBLL.getAverageRating(room.getRoomId())));
+        pnRoomList.revalidate();
+        pnRoomList.repaint();
+    }
+
+    private RoomCardPanel buildCard(DTO.RoomDTO room, double avgRating) {
+        RoomCardPanel card = new RoomCardPanel();
+        card.getLbTitle().setText(room.getTitle());
+        card.getLbPrice().setText(String.format("%,.0f VNĐ/tháng", room.getPrice()));
+        card.getLbArea().setText(room.getArea() + " m²");
+        card.getLbAddress().setText(truncate(room.getAddress(), 40));
+        card.getLbAvailability().setText(room.isAvailability() ? "Còn phòng" : "Hết phòng");
+        card.getLbRating().setText(String.format("⭐ %.1f", avgRating));
+        card.getBtnUpdate().setVisible(false);
+        card.getBtnDelete().setVisible(false);
+        card.getBtnAvailability().setVisible(false);
+        card.getLbStatus().setVisible(false);
+        javax.swing.JPanel pnA = card.getPnAmenity();
+        pnA.removeAll();
+        java.util.List<DTO.AmenityDTO> ams = room.getAmenityList();
+        for (int i = 0; i < Math.min(3, ams.size()); i++)
+            pnA.add(new javax.swing.JLabel(ams.get(i).getName()));
+        loadThumbnail(card, room);
+        card.getLbThumb().addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                new RoomDetailFrame(room, currentUser).setVisible(true);
+            }
+        });
+        card.getLbTitle().addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                new RoomDetailFrame(room, currentUser).setVisible(true);
+            }
+        });
+        return card;
+    }
+
+    private void loadThumbnail(RoomCardPanel card, DTO.RoomDTO room) {
+        java.util.List<String> imgs = room.getImagePathList();
+        if (imgs == null || imgs.isEmpty()) return;
+        try {
+            javax.swing.ImageIcon icon = new javax.swing.ImageIcon(imgs.get(0));
+            java.awt.Image scaled = icon.getImage().getScaledInstance(380, 200, java.awt.Image.SCALE_SMOOTH);
+            card.getLbThumb().setIcon(new javax.swing.ImageIcon(scaled));
+            card.getLbThumb().setText("");
+        } catch (Exception ignored) {}
+    }
+
+    private String truncate(String s, int max) {
+        return (s == null || s.length() <= max) ? s : s.substring(0, max) + "…";
+    }
+
+    private double parseDouble(String s, double fallback) {
+        try { return Double.parseDouble(s); } catch (NumberFormatException e) { return fallback; }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -67,7 +171,6 @@ public class TenantMainFrame extends javax.swing.JFrame {
         pnRoomList = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(1280, 720));
         setSize(new java.awt.Dimension(1280, 720));
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));

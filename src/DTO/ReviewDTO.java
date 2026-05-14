@@ -2,15 +2,12 @@ package DTO;
 
 import java.time.LocalDateTime;
 
-/**
- * DTO ánh xạ bảng reviews.
- */
 public class ReviewDTO {
 
     private String        reviewId;
     private String        roomId;
     private String        tenantId;
-    private int           rating;      // 1 – 5
+    private int           rating;
     private String        comment;
     private LocalDateTime createdAt;
 
@@ -35,8 +32,8 @@ public class ReviewDTO {
     public String getTenantId()                { return tenantId; }
     public void setTenantId(String tenantId)   { this.tenantId = tenantId; }
 
-    public int getRating()           { return rating; }
-    public void setRating(int rating){ this.rating = rating; }
+    public int getRating()            { return rating; }
+    public void setRating(int rating) { this.rating = rating; }
 
     public String getComment()               { return comment; }
     public void setComment(String comment)   { this.comment = comment; }

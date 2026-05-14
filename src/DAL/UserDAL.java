@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * DAL thao tác với bảng users.
- */
 public class UserDAL {
 
     private static final Logger LOGGER = Logger.getLogger(UserDAL.class.getName());
@@ -21,14 +18,6 @@ public class UserDAL {
         return DatabaseConnection.getInstance().getConnection();
     }
 
-    // ─────────────────────────────────────────────
-    // CREATE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Thêm user mới.
-     * @return true nếu thành công.
-     */
     public boolean insert(UserDTO user) {
         String sql = "INSERT INTO users (user_id, username, name, phone_number, role) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -44,13 +33,6 @@ public class UserDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // READ
-    // ─────────────────────────────────────────────
-
-    /**
-     * Lấy tất cả users.
-     */
     public List<UserDTO> getAll() {
         List<UserDTO> list = new ArrayList<>();
         String sql = "SELECT user_id, username, name, phone_number, role FROM users";
@@ -63,9 +45,6 @@ public class UserDAL {
         return list;
     }
 
-    /**
-     * Tìm user theo user_id.
-     */
     public UserDTO getById(String userId) {
         String sql = "SELECT user_id, username, name, phone_number, role FROM users WHERE user_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -79,9 +58,6 @@ public class UserDAL {
         return null;
     }
 
-    /**
-     * Tìm user theo username.
-     */
     public UserDTO getByUsername(String username) {
         String sql = "SELECT user_id, username, name, phone_number, role FROM users WHERE username = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -95,9 +71,6 @@ public class UserDAL {
         return null;
     }
 
-    /**
-     * Lấy danh sách users theo role.
-     */
     public List<UserDTO> getByRole(Role role) {
         List<UserDTO> list = new ArrayList<>();
         String sql = "SELECT user_id, username, name, phone_number, role FROM users WHERE role = ?";
@@ -112,14 +85,6 @@ public class UserDAL {
         return list;
     }
 
-    // ─────────────────────────────────────────────
-    // UPDATE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Cập nhật thông tin user.
-     * @return true nếu thành công.
-     */
     public boolean update(UserDTO user) {
         String sql = "UPDATE users SET name = ?, phone_number = ?, role = ? WHERE user_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -134,14 +99,6 @@ public class UserDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // DELETE
-    // ─────────────────────────────────────────────
-
-    /**
-     * Xóa user theo user_id.
-     * @return true nếu thành công.
-     */
     public boolean delete(String userId) {
         String sql = "DELETE FROM users WHERE user_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -152,10 +109,6 @@ public class UserDAL {
             return false;
         }
     }
-
-    // ─────────────────────────────────────────────
-    // Helper
-    // ─────────────────────────────────────────────
 
     private UserDTO mapRow(ResultSet rs) throws SQLException {
         return new UserDTO(

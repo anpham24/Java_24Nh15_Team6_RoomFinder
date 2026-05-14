@@ -1,8 +1,5 @@
 package DTO;
 
-/**
- * DTO ánh xạ bảng accounts.
- */
 public class AccountDTO {
 
     private String username;

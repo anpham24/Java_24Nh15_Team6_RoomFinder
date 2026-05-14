@@ -15,18 +15,56 @@ public class LoginFrame extends javax.swing.JFrame {
     /**
      * Creates new form LoginFrame
      */
+    private final BLL.LoginController loginBLL = new BLL.LoginController();
+
     public LoginFrame() {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
-        new BLL.LoginController(this);
+        initEvents();
     }
 
-    // ── Public getters cho Controller ──
-    public javax.swing.JTextField getTxtUsername()   { return txtUsername; }
-    public javax.swing.JPasswordField getTxtPassword() { return txtPassword; }
-    public javax.swing.JButton getBtnLogin()         { return btnLogin; }
-    public javax.swing.JButton getBtnNewAccount()    { return btnNewAccount; }
+    private void initEvents() {
+        btnLogin.addActionListener(e -> handleLogin());
+        btnNewAccount.addActionListener(e -> handleGoToRegister());
+        btnCancel.addActionListener(e -> handleCancel());
+        txtPassword.addActionListener(e -> handleLogin());
+    }
+
+    private void handleLogin() {
+        String username = txtUsername.getText().trim();
+        String password = new String(txtPassword.getPassword());
+        if (username.isEmpty() || password.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu.",
+                    "Thông báo", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        DTO.UserDTO user = loginBLL.login(username, password);
+        if (user == null) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Tên đăng nhập hoặc mật khẩu không đúng.",
+                    "Đăng nhập thất bại", javax.swing.JOptionPane.ERROR_MESSAGE);
+            txtPassword.setText("");
+        } else {
+            dispose();
+            switch (user.getRole()) {
+                case TENANT   -> new TenantMainFrame(user).setVisible(true);
+                case LANDLORD -> new LandlordMainFrame(user).setVisible(true);
+                case ADMIN    -> new AdminMainFrame(user).setVisible(true);
+            }
+        }
+    }
+
+    private void handleGoToRegister() {
+        setVisible(false);
+        new RegisterFrame().setVisible(true);
+    }
+
+    private void handleCancel() {
+        dispose();
+        new TenantMainFrame().setVisible(true);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -45,10 +83,11 @@ public class LoginFrame extends javax.swing.JFrame {
         txtPassword = new javax.swing.JPasswordField();
         btnLogin = new javax.swing.JButton();
         btnNewAccount = new javax.swing.JButton();
+        btnCancel = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setText("Đăng nhập");
 
         jLabel2.setText("Tên đăng nhập");
@@ -57,39 +96,44 @@ public class LoginFrame extends javax.swing.JFrame {
 
         btnLogin.setText("Đăng nhập");
 
-        btnNewAccount.setText("Tạo tài khoản");
+        btnNewAccount.setText("Đăng ký");
+
+        btnCancel.setText("Thoát");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addContainerGap(79, Short.MAX_VALUE)
+                .addGap(142, 142, 142)
+                .addComponent(jLabel1)
+                .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(74, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(btnNewAccount)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(btnLogin)
-                        .addGap(99, 99, 99))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnCancel)
+                        .addContainerGap())
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING)
-                            .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtUsername)
-                            .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-                        .addGap(74, 74, 74))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(160, 160, 160))))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel2))
+                        .addGap(32, 32, 32)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(74, 74, 74))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(56, 56, 56)
+                .addGap(58, 58, 58)
                 .addComponent(jLabel1)
-                .addGap(35, 35, 35)
+                .addGap(33, 33, 33)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
                     .addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -100,7 +144,8 @@ public class LoginFrame extends javax.swing.JFrame {
                 .addGap(28, 28, 28)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogin)
-                    .addComponent(btnNewAccount))
+                    .addComponent(btnNewAccount)
+                    .addComponent(btnCancel))
                 .addContainerGap(76, Short.MAX_VALUE))
         );
 
@@ -133,6 +178,7 @@ public class LoginFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnNewAccount;
     private javax.swing.JLabel jLabel1;

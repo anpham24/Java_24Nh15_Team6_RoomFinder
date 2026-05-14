@@ -14,42 +14,206 @@ public class AdminMainFrame extends javax.swing.JFrame {
 
     private DTO.UserDTO currentUser;
 
+    private final BLL.AdminController adminBLL = new BLL.AdminController();
+
     public AdminMainFrame(DTO.UserDTO user) {
         this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
-        new BLL.AdminController(this, currentUser);
+        setupTableModels();
+        initEvents();
+        loadApproveTab();
+        loadRoomManageTab(null, null);
+        loadUserManageTab(null, null);
+        loadAmenityTab();
     }
 
     public AdminMainFrame() { this(null); }
 
-    // ── Public getters cho Controller ──
-    public DTO.UserDTO getCurrentUser()              { return currentUser; }
-    public javax.swing.JButton getBtnLogout()        { return btnLogout; }
-    // Tab 1
-    public javax.swing.JTable getTbApproveRoom()     { return tbApproveRoom; }
-    public javax.swing.JButton getBtnRoomDetailTab1(){ return btnRoomDetail_tab1; }
-    public javax.swing.JButton getBtnApproveRoom()   { return btnApproveRoom; }
-    public javax.swing.JButton getBtnDeclineRoom()   { return btnDeclineRoom; }
-    // Tab 2
-    public javax.swing.JTable getTbRoomManage()      { return tbRoomManage; }
-    public javax.swing.JTextField getTxtSearchRoom() { return txtSearchRoom; }
-    public javax.swing.JComboBox<String> getCboStatus(){ return cboStatus; }
-    public javax.swing.JButton getBtnSearchRoom()    { return btnSearchRoom; }
-    public javax.swing.JButton getBtnRoomDetailTab2(){ return btnRoomDetail_tab2; }
-    public javax.swing.JButton getBtnDeleteRoom()    { return btnDeleteRoom; }
-    // Tab 3
-    public javax.swing.JTable getTbUserManage()      { return tbUserManage; }
-    public javax.swing.JTextField getTxtSearchUser() { return txtSearchUser; }
-    public javax.swing.JComboBox<String> getCboRole(){ return cboRole; }
-    public javax.swing.JButton getBtnSearchUser()    { return btnSearchUser; }
-    public javax.swing.JButton getBtnDeleteUser()    { return btnDeleteUser; }
-    // Tab 4
-    public javax.swing.JTable getTbAmenityManage()   { return tbAmenityManage; }
-    public javax.swing.JButton getBtnAddAmenity()    { return btnAddAmenity; }
-    public javax.swing.JButton getBtnUpdateAmenity() { return btnUpdateAmenity; }
-    public javax.swing.JButton getBtnDeleteAmenity() { return btnDeleteAmenity; }
+    public DTO.UserDTO getCurrentUser() { return currentUser; }
+
+    private void setupTableModels() {
+        tbApproveRoom.setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tiêu đề", "Chủ trọ", "Ngày đăng", "Trạng thái"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+        tbRoomManage.setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tiêu đề", "Chủ trọ", "Giá thuê", "Trạng thái"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+        tbUserManage.setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tên", "Số điện thoại", "Vai trò"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+        tbAmenityManage.setModel(new javax.swing.table.DefaultTableModel(
+            new String[]{"ID", "Tên tiện nghi"}, 0) {
+            @Override public Class<?> getColumnClass(int c) { return Object.class; }
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        });
+    }
+
+    private void initEvents() {
+        btnLogout.addActionListener(e -> {
+            int c = javax.swing.JOptionPane.showConfirmDialog(this,
+                    "Bạn có chắc muốn đăng xuất?", "Đăng xuất",
+                    javax.swing.JOptionPane.YES_NO_OPTION);
+            if (c == javax.swing.JOptionPane.YES_OPTION) { dispose(); new TenantMainFrame().setVisible(true); }
+        });
+        btnRoomDetail_tab1.addActionListener(e -> openRoomDetail(tbApproveRoom));
+        btnApproveRoom.addActionListener(e -> handleApprove(true));
+        btnDeclineRoom.addActionListener(e -> handleApprove(false));
+        btnSearchRoom.addActionListener(e -> handleSearchRoom());
+        btnRoomDetail_tab2.addActionListener(e -> openRoomDetail(tbRoomManage));
+        btnDeleteRoom.addActionListener(e -> handleDeleteRoom());
+        btnSearchUser.addActionListener(e -> handleSearchUser());
+        btnDeleteUser.addActionListener(e -> handleDeleteUser());
+        btnAddAmenity.addActionListener(e -> handleAddAmenity());
+        btnUpdateAmenity.addActionListener(e -> handleUpdateAmenity());
+        btnDeleteAmenity.addActionListener(e -> handleDeleteAmenity());
+    }
+
+    private void loadApproveTab() {
+        javax.swing.table.DefaultTableModel m = (javax.swing.table.DefaultTableModel) tbApproveRoom.getModel();
+        m.setRowCount(0);
+        for (DTO.RoomDTO r : adminBLL.getPendingRooms()) {
+            DTO.UserDTO landlord = adminBLL.getUserById(r.getLandlordId());
+            m.addRow(new Object[]{ r.getRoomId(), r.getTitle(),
+                landlord != null ? landlord.getName() : r.getLandlordId(),
+                r.getCreatedAt() != null ? r.getCreatedAt().toLocalDate().toString() : "",
+                "Chờ duyệt" });
+        }
+    }
+
+    private void loadRoomManageTab(String keyword, String statusFilter) {
+        javax.swing.table.DefaultTableModel m = (javax.swing.table.DefaultTableModel) tbRoomManage.getModel();
+        m.setRowCount(0);
+        for (DTO.RoomDTO r : adminBLL.searchRooms(keyword, statusFilter)) {
+            DTO.UserDTO landlord = adminBLL.getUserById(r.getLandlordId());
+            m.addRow(new Object[]{ r.getRoomId(), r.getTitle(),
+                landlord != null ? landlord.getName() : r.getLandlordId(),
+                String.format("%,.0f", r.getPrice()), statusToLabel(r.getStatus()) });
+        }
+    }
+
+    private void loadUserManageTab(String keyword, DTO.UserDTO.Role roleFilter) {
+        javax.swing.table.DefaultTableModel m = (javax.swing.table.DefaultTableModel) tbUserManage.getModel();
+        m.setRowCount(0);
+        for (DTO.UserDTO u : adminBLL.searchUsers(keyword, roleFilter))
+            m.addRow(new Object[]{ u.getUserId(), u.getName(), u.getPhoneNumber(),
+                u.getRole() == DTO.UserDTO.Role.LANDLORD ? "Chủ trọ" : "Người thuê" });
+    }
+
+    private void loadAmenityTab() {
+        javax.swing.table.DefaultTableModel m = (javax.swing.table.DefaultTableModel) tbAmenityManage.getModel();
+        m.setRowCount(0);
+        for (DTO.AmenityDTO a : adminBLL.getAllAmenities())
+            m.addRow(new Object[]{ a.getAmenityId(), a.getName() });
+    }
+
+    private void handleApprove(boolean approve) {
+        int row = tbApproveRoom.getSelectedRow();
+        if (row < 0) { javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng."); return; }
+        String roomId = (String) tbApproveRoom.getValueAt(row, 0);
+        if (adminBLL.updateRoomStatus(roomId, approve ? "APPROVED" : "DECLINED")) {
+            javax.swing.JOptionPane.showMessageDialog(this, approve ? "Đã duyệt bài." : "Đã từ chối bài.");
+            loadApproveTab();
+            loadRoomManageTab(null, null);
+        }
+    }
+
+    private void handleSearchRoom() {
+        String keyword = txtSearchRoom.getText().trim();
+        String statusStr = (String) cboStatus.getSelectedItem();
+        String statusFilter = switch (statusStr) {
+            case "Đã duyệt"   -> "APPROVED";
+            case "Chờ duyệt"  -> "PENDING";
+            case "Bị từ chối" -> "DECLINED";
+            default           -> null;
+        };
+        loadRoomManageTab(keyword, statusFilter);
+    }
+
+    private void handleDeleteRoom() {
+        int row = tbRoomManage.getSelectedRow();
+        if (row < 0) { javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng."); return; }
+        String roomId = (String) tbRoomManage.getValueAt(row, 0);
+        int c = javax.swing.JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa bài đăng này?",
+                "Xác nhận xóa", javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+        if (c == javax.swing.JOptionPane.YES_OPTION && adminBLL.deleteRoom(roomId)) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Đã xóa bài đăng.");
+            loadRoomManageTab(null, null);
+            loadApproveTab();
+        }
+    }
+
+    private void openRoomDetail(javax.swing.JTable table) {
+        int row = table.getSelectedRow();
+        if (row < 0) { javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng."); return; }
+        String roomId = (String) table.getValueAt(row, 0);
+        DTO.RoomDTO room = adminBLL.getRoomById(roomId);
+        if (room != null) new RoomDetailFrame(room, currentUser).setVisible(true);
+    }
+
+    private void handleSearchUser() {
+        String keyword = txtSearchUser.getText().trim();
+        String roleStr = (String) cboRole.getSelectedItem();
+        DTO.UserDTO.Role roleFilter = "Chủ trọ".equals(roleStr)   ? DTO.UserDTO.Role.LANDLORD
+                                    : "Người thuê".equals(roleStr) ? DTO.UserDTO.Role.TENANT : null;
+        loadUserManageTab(keyword, roleFilter);
+    }
+
+    private void handleDeleteUser() {
+        int row = tbUserManage.getSelectedRow();
+        if (row < 0) { javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng."); return; }
+        String userId = (String) tbUserManage.getValueAt(row, 0);
+        int c = javax.swing.JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa người dùng này?",
+                "Xác nhận xóa", javax.swing.JOptionPane.YES_NO_OPTION);
+        if (c == javax.swing.JOptionPane.YES_OPTION) {
+            if (adminBLL.deleteUser(userId))
+                { javax.swing.JOptionPane.showMessageDialog(this, "Đã xóa người dùng."); loadUserManageTab(null, null); }
+            else
+                javax.swing.JOptionPane.showMessageDialog(this, "Xóa thất bại.", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleAddAmenity() {
+        String name = javax.swing.JOptionPane.showInputDialog(this, "Nhập tên tiện nghi mới:");
+        if (name != null && !name.trim().isEmpty() && adminBLL.addAmenity(name.trim()))
+            { javax.swing.JOptionPane.showMessageDialog(this, "Đã thêm tiện nghi."); loadAmenityTab(); }
+    }
+
+    private void handleUpdateAmenity() {
+        int row = tbAmenityManage.getSelectedRow();
+        if (row < 0) { javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng."); return; }
+        String id  = (String) tbAmenityManage.getValueAt(row, 0);
+        String cur = (String) tbAmenityManage.getValueAt(row, 1);
+        String newName = javax.swing.JOptionPane.showInputDialog(this, "Sửa tên tiện nghi:", cur);
+        if (newName != null && !newName.trim().isEmpty() && adminBLL.updateAmenity(id, newName.trim()))
+            { javax.swing.JOptionPane.showMessageDialog(this, "Đã cập nhật tiện nghi."); loadAmenityTab(); }
+    }
+
+    private void handleDeleteAmenity() {
+        int row = tbAmenityManage.getSelectedRow();
+        if (row < 0) { javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng chọn một dòng."); return; }
+        String id = (String) tbAmenityManage.getValueAt(row, 0);
+        int c = javax.swing.JOptionPane.showConfirmDialog(this, "Bạn có chắc muốn xóa tiện nghi này?",
+                "Xác nhận xóa", javax.swing.JOptionPane.YES_NO_OPTION);
+        if (c == javax.swing.JOptionPane.YES_OPTION && adminBLL.deleteAmenity(id))
+            { javax.swing.JOptionPane.showMessageDialog(this, "Đã xóa tiện nghi."); loadAmenityTab(); }
+    }
+
+    private static String statusToLabel(String s) {
+        if (s == null) return "Không rõ";
+        return switch (s) {
+            case "APPROVED" -> "Đã duyệt";
+            case "DECLINED" -> "Bị từ chối";
+            default         -> "Chờ duyệt";
+        };
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.

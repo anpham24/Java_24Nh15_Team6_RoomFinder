@@ -15,40 +15,213 @@ public class RoomDetailFrame extends javax.swing.JFrame {
     private DTO.UserDTO currentUser;
     private DTO.RoomDTO room;
 
+    private final BLL.RoomDetailController roomDetailBLL = new BLL.RoomDetailController();
+
     public RoomDetailFrame(DTO.RoomDTO room, DTO.UserDTO user) {
         this.room = room;
         this.currentUser = user;
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
-        new BLL.RoomDetailController(this, room, user);
+        if (room == null) return;
+        populateRoomInfo();
+        loadImages();
+        loadAmenities();
+        loadReviews();
+        applyRoleVisibility();
+        initEvents();
     }
 
     public RoomDetailFrame() { this(null, null); }
 
-    // ── Public getters cho Controller ──
-    public DTO.UserDTO getCurrentUser()                  { return currentUser; }
-    public DTO.RoomDTO getRoom()                         { return room; }
-    public javax.swing.JLabel getLbMainImage()           { return lbMainImage; }
-    public javax.swing.JPanel getPnImageList()           { return pnImageList; }
-    public javax.swing.JLabel getLbTitle()               { return lbTitle; }
-    public javax.swing.JLabel getLbAvailability()        { return lbAvailability; }
-    public javax.swing.JLabel getLbRating()              { return lbRating; }
-    public javax.swing.JLabel getLbStatus()              { return lbStatus; }
-    public javax.swing.JLabel getLbDescription()         { return lbDescription; }
-    public javax.swing.JPanel getPnAmenity()             { return pnAmenity; }
-    public javax.swing.JLabel getLbAddress()             { return lbAddress; }
-    public javax.swing.JLabel getLbPrice()               { return lbPrice; }
-    public javax.swing.JLabel getLbArea()                { return lbArea; }
-    public javax.swing.JLabel getLbPhone()               { return lbPhone; }
-    public javax.swing.JButton getBtnUpdate()            { return btnUpdate; }
-    public javax.swing.JButton getBtnDelete()            { return btnDelete; }
-    public javax.swing.JButton getBtnAvailability()      { return btnAvailability; }
-    public javax.swing.JPanel getPnReviewList()          { return pnReviewList; }
-    public javax.swing.JTextField getTxtReview()         { return txtReview; }
-    public javax.swing.JComboBox<String> getCboRating()  { return cboRating; }
-    public javax.swing.JButton getBtnSubmit()            { return btnSubmit; }
-    public javax.swing.JLabel getLbStar()                { return lbStar; }
+    public DTO.UserDTO getCurrentUser() { return currentUser; }
+    public DTO.RoomDTO getRoom()        { return room; }
+
+    private void populateRoomInfo() {
+        lbTitle.setText(room.getTitle());
+        lbAvailability.setText(room.isAvailability() ? "Còn phòng" : "Hết phòng");
+        lbStatus.setText(statusToLabel(room.getStatus()));
+        lbDescription.setText("<html><body style='width:430px'>" + room.getDescription() + "</body></html>");
+        lbAddress.setText(room.getAddress());
+        lbPrice.setText(String.format("%,.0f VNĐ/tháng", room.getPrice()));
+        lbArea.setText(room.getArea() + " m²");
+        lbRating.setText(String.format("⭐ %.1f", roomDetailBLL.getAverageRating(room.getRoomId())));
+        DTO.UserDTO landlord = roomDetailBLL.getUserById(room.getLandlordId());
+        lbPhone.setText(landlord != null ? landlord.getPhoneNumber() : "");
+    }
+
+    private void loadImages() {
+        java.util.List<String> paths = room.getImagePathList();
+        if (paths == null || paths.isEmpty()) return;
+        setMainImage(paths.get(0));
+        pnImageList.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 5));
+        pnImageList.removeAll();
+        for (String path : paths) {
+            javax.swing.JLabel thumb = new javax.swing.JLabel();
+            try {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(path);
+                java.awt.Image scaled = icon.getImage().getScaledInstance(100, 80, java.awt.Image.SCALE_SMOOTH);
+                thumb.setIcon(new javax.swing.ImageIcon(scaled));
+            } catch (Exception ignored) { thumb.setText("[ảnh]"); }
+            thumb.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+            thumb.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) { setMainImage(path); }
+            });
+            pnImageList.add(thumb);
+        }
+        pnImageList.revalidate();
+        pnImageList.repaint();
+    }
+
+    private void setMainImage(String path) {
+        try {
+            javax.swing.ImageIcon icon = new javax.swing.ImageIcon(path);
+            java.awt.Image scaled = icon.getImage().getScaledInstance(550, 560, java.awt.Image.SCALE_SMOOTH);
+            lbMainImage.setIcon(new javax.swing.ImageIcon(scaled));
+            lbMainImage.setText("");
+        } catch (Exception ignored) {}
+    }
+
+    private void loadAmenities() {
+        pnAmenity.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 5));
+        pnAmenity.removeAll();
+        for (DTO.AmenityDTO a : room.getAmenityList())
+            pnAmenity.add(new javax.swing.JLabel("✓ " + a.getName()));
+        pnAmenity.revalidate();
+        pnAmenity.repaint();
+    }
+
+    private void loadReviews() {
+        pnReviewList.setLayout(new javax.swing.BoxLayout(pnReviewList, javax.swing.BoxLayout.Y_AXIS));
+        pnReviewList.removeAll();
+        for (DTO.ReviewDTO rv : roomDetailBLL.getReviews(room.getRoomId())) {
+            ReviewPanel panel = new ReviewPanel();
+            DTO.UserDTO tenant = roomDetailBLL.getUserById(rv.getTenantId());
+            panel.getLbName().setText(tenant != null ? tenant.getName() : rv.getTenantId());
+            panel.getLbContent().setText("<html><body style='width:450px'>" + rv.getComment() + "</body></html>");
+            panel.getLbRating().setText("⭐ " + rv.getRating() + "/5");
+            pnReviewList.add(panel);
+        }
+        pnReviewList.revalidate();
+        pnReviewList.repaint();
+    }
+
+    private void applyRoleVisibility() {
+        if (currentUser == null) {
+            btnUpdate.setVisible(false);
+            btnDelete.setVisible(false);
+            btnAvailability.setVisible(false);
+            lbStatus.setVisible(false);
+            txtReview.setVisible(true);
+            cboRating.setVisible(true);
+            lbStar.setVisible(true);
+            btnSubmit.setText("Đăng nhập để đánh giá");
+            btnSubmit.setVisible(true);
+            lbPhone.setVisible(true);
+            return;
+        }
+        switch (currentUser.getRole()) {
+            case TENANT -> {
+                btnUpdate.setVisible(false);
+                btnDelete.setVisible(false);
+                btnAvailability.setVisible(false);
+                lbStatus.setVisible(false);
+                txtReview.setVisible(true);
+                cboRating.setVisible(true);
+                lbStar.setVisible(true);
+                btnSubmit.setVisible(true);
+                lbPhone.setVisible(true);
+            }
+            case LANDLORD -> {
+                boolean isOwner = room.getLandlordId().equals(currentUser.getUserId());
+                btnUpdate.setVisible(isOwner);
+                btnDelete.setVisible(isOwner);
+                btnAvailability.setVisible(isOwner);
+                lbStatus.setVisible(true);
+                txtReview.setVisible(false);
+                cboRating.setVisible(false);
+                lbStar.setVisible(false);
+                btnSubmit.setVisible(false);
+            }
+            case ADMIN -> {
+                btnUpdate.setVisible(false);
+                btnDelete.setVisible(true);
+                btnAvailability.setVisible(false);
+                lbStatus.setVisible(true);
+                txtReview.setVisible(false);
+                cboRating.setVisible(false);
+                lbStar.setVisible(false);
+                btnSubmit.setVisible(false);
+            }
+        }
+    }
+
+    private void initEvents() {
+        btnSubmit.addActionListener(e -> handleSubmitReview());
+        btnUpdate.addActionListener(e -> {
+            new RoomActionDialog(this, currentUser, room, () -> {
+                room = roomDetailBLL.refreshRoom(room.getRoomId());
+                if (room != null) { populateRoomInfo(); loadImages(); loadAmenities(); }
+            }).setVisible(true);
+        });
+        btnDelete.addActionListener(e -> {
+            int c = javax.swing.JOptionPane.showConfirmDialog(this,
+                    "Bạn có chắc muốn xóa phòng này?", "Xác nhận xóa",
+                    javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.WARNING_MESSAGE);
+            if (c == javax.swing.JOptionPane.YES_OPTION) {
+                if (roomDetailBLL.deleteRoom(room.getRoomId()))
+                    { javax.swing.JOptionPane.showMessageDialog(this, "Đã xóa phòng."); dispose(); }
+                else
+                    javax.swing.JOptionPane.showMessageDialog(this, "Xóa thất bại.", "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        btnAvailability.addActionListener(e -> {
+            if (roomDetailBLL.updateAvailability(room.getRoomId(), !room.isAvailability())) {
+                room.setAvailability(!room.isAvailability());
+                lbAvailability.setText(room.isAvailability() ? "Còn phòng" : "Hết phòng");
+            }
+        });
+    }
+
+    private void handleSubmitReview() {
+        if (currentUser == null) {
+            int c = javax.swing.JOptionPane.showConfirmDialog(this,
+                    "Bạn cần đăng nhập để đánh giá phòng này.\nBạn có muốn đăng nhập không?",
+                    "Yêu cầu đăng nhập", javax.swing.JOptionPane.YES_NO_OPTION,
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            if (c == javax.swing.JOptionPane.YES_OPTION) {
+                for (java.awt.Window w : java.awt.Window.getWindows()) w.dispose();
+                new LoginFrame().setVisible(true);
+            }
+            return;
+        }
+        String content = txtReview.getText().trim();
+        if (content.isEmpty() || content.equals("<Nhập đánh giá>")) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Vui lòng nhập nội dung đánh giá.");
+            return;
+        }
+        int rating;
+        try { rating = Integer.parseInt((String) cboRating.getSelectedItem()); }
+        catch (Exception ex) { rating = 5; }
+        String error = roomDetailBLL.submitReview(room.getRoomId(), currentUser.getUserId(), rating, content);
+        if (error == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Đánh giá thành công!");
+            txtReview.setText("");
+            loadReviews();
+            lbRating.setText(String.format("⭐ %.1f", roomDetailBLL.getAverageRating(room.getRoomId())));
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, error, "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private static String statusToLabel(String s) {
+        if (s == null) return "⏳ Chờ duyệt";
+        return switch (s) {
+            case "APPROVED" -> "✔ Đã duyệt";
+            case "DECLINED" -> "✘ Bị từ chối";
+            default         -> "⏳ Chờ duyệt";
+        };
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.

@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- * DAL thao tác với bảng reviews.
- */
 public class ReviewDAL {
 
     private static final Logger LOGGER = Logger.getLogger(ReviewDAL.class.getName());
@@ -20,10 +17,6 @@ public class ReviewDAL {
     private Connection getConn() {
         return DatabaseConnection.getInstance().getConnection();
     }
-
-    // ─────────────────────────────────────────────
-    // CREATE
-    // ─────────────────────────────────────────────
 
     public boolean insert(ReviewDTO review) {
         String sql = "INSERT INTO reviews (review_id, room_id, tenant_id, rating, comment) "
@@ -41,10 +34,6 @@ public class ReviewDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // READ
-    // ─────────────────────────────────────────────
-
     public List<ReviewDTO> getAll() {
         List<ReviewDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM reviews ORDER BY created_at DESC";
@@ -57,9 +46,6 @@ public class ReviewDAL {
         return list;
     }
 
-    /**
-     * Lấy tất cả reviews của một phòng.
-     */
     public List<ReviewDTO> getByRoomId(String roomId) {
         List<ReviewDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM reviews WHERE room_id = ? ORDER BY created_at DESC";
@@ -74,9 +60,6 @@ public class ReviewDAL {
         return list;
     }
 
-    /**
-     * Lấy tất cả reviews của một tenant.
-     */
     public List<ReviewDTO> getByTenantId(String tenantId) {
         List<ReviewDTO> list = new ArrayList<>();
         String sql = "SELECT * FROM reviews WHERE tenant_id = ? ORDER BY created_at DESC";
@@ -91,10 +74,6 @@ public class ReviewDAL {
         return list;
     }
 
-    /**
-     * Tính điểm trung bình của một phòng.
-     * @return Điểm trung bình, hoặc 0.0 nếu chưa có review.
-     */
     public double getAverageRating(String roomId) {
         String sql = "SELECT AVG(rating) AS avg_rating FROM reviews WHERE room_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -107,10 +86,6 @@ public class ReviewDAL {
         }
         return 0.0;
     }
-
-    // ─────────────────────────────────────────────
-    // UPDATE
-    // ─────────────────────────────────────────────
 
     public boolean update(ReviewDTO review) {
         String sql = "UPDATE reviews SET rating = ?, comment = ? WHERE review_id = ?";
@@ -125,10 +100,6 @@ public class ReviewDAL {
         }
     }
 
-    // ─────────────────────────────────────────────
-    // DELETE
-    // ─────────────────────────────────────────────
-
     public boolean delete(String reviewId) {
         String sql = "DELETE FROM reviews WHERE review_id = ?";
         try (PreparedStatement ps = getConn().prepareStatement(sql)) {
@@ -139,10 +110,6 @@ public class ReviewDAL {
             return false;
         }
     }
-
-    // ─────────────────────────────────────────────
-    // Helper
-    // ─────────────────────────────────────────────
 
     private ReviewDTO mapRow(ResultSet rs) throws SQLException {
         LocalDateTime createdAt = rs.getTimestamp("created_at") != null

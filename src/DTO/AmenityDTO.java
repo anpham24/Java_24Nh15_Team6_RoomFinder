@@ -1,8 +1,5 @@
 package DTO;
 
-/**
- * DTO ánh xạ bảng amenities.
- */
 public class AmenityDTO {
 
     private String amenityId;
@@ -15,8 +12,8 @@ public class AmenityDTO {
         this.name      = name;
     }
 
-    public String getAmenityId()              { return amenityId; }
-    public void setAmenityId(String amenityId){ this.amenityId = amenityId; }
+    public String getAmenityId()               { return amenityId; }
+    public void setAmenityId(String amenityId) { this.amenityId = amenityId; }
 
     public String getName()           { return name; }
     public void setName(String name)  { this.name = name; }

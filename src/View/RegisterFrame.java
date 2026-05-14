@@ -15,22 +15,52 @@ public class RegisterFrame extends javax.swing.JFrame {
     /**
      * Creates new form RegisterFrame
      */
+    private final BLL.RegisterController registerBLL = new BLL.RegisterController();
+
     public RegisterFrame() {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setResizable(false);
-        new BLL.RegisterController(this);
+        initEvents();
     }
 
-    // ── Public getters cho Controller ──
-    public javax.swing.JTextField getTxtName()         { return txtName; }
-    public javax.swing.JTextField getTxtPhone()        { return txtPhone; }
-    public javax.swing.JTextField getTxtUsername()     { return txtUsername; }
-    public javax.swing.JPasswordField getTxtPassword() { return txtPassword; }
-    public javax.swing.JRadioButton getRdoTenant()     { return rdoTenant; }
-    public javax.swing.JRadioButton getRdoLandlord()   { return rdoLandlord; }
-    public javax.swing.JButton getBtnRegister()        { return btnRegister; }
-    public javax.swing.JButton getBtnExit()            { return btnExit; }
+    private void initEvents() {
+        btnRegister.addActionListener(e -> handleRegister());
+        btnLogin.addActionListener(e -> handleGoToLogin());
+        btnExit.addActionListener(e -> handleExit());
+    }
+
+    private void handleRegister() {
+        String name     = txtName.getText().trim();
+        String phone    = txtPhone.getText().trim();
+        String username = txtUsername.getText().trim();
+        String password = new String(txtPassword.getPassword());
+        if (!rdoTenant.isSelected() && !rdoLandlord.isSelected()) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Vui lòng chọn vai trò (Người tìm trọ hoặc Chủ trọ).",
+                    "Chưa chọn vai trò", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        String error = registerBLL.register(name, phone, username, password, rdoTenant.isSelected());
+        if (error == null) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Đăng ký thành công! Vui lòng đăng nhập.",
+                    "Thành công", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            handleGoToLogin();
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, error, "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void handleGoToLogin() {
+        dispose();
+        new LoginFrame().setVisible(true);
+    }
+
+    private void handleExit() {
+        dispose();
+        new TenantMainFrame().setVisible(true);
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -56,10 +86,11 @@ public class RegisterFrame extends javax.swing.JFrame {
         rdoTenant = new javax.swing.JRadioButton();
         rdoLandlord = new javax.swing.JRadioButton();
         txtPassword = new javax.swing.JPasswordField();
+        btnLogin = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setText("Đăng ký");
 
         jLabel2.setText("Tên");
@@ -82,51 +113,49 @@ public class RegisterFrame extends javax.swing.JFrame {
         btgRole.add(rdoLandlord);
         rdoLandlord.setText("Chủ trọ");
 
+        btnLogin.setText("Đăng nhập");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(77, 77, 77)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(28, 28, 28)
-                        .addComponent(btnExit)
-                        .addGap(49, 49, 49)
-                        .addComponent(btnRegister))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                        .addGap(153, 153, 153)
+                        .addComponent(jLabel1))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(77, 77, 77)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel3)
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                        .addComponent(jLabel4)
-                                        .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.LEADING))
-                                    .addGap(18, 18, 18)))
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addComponent(txtPhone)
-                                .addComponent(txtUsername)
-                                .addComponent(txtPassword)))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(jLabel6)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(rdoTenant)
-                            .addGap(8, 8, 8)
-                            .addComponent(rdoLandlord))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addComponent(jLabel2)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 58, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(92, 92, 92))
-                                .addGroup(layout.createSequentialGroup()
-                                    .addGap(78, 78, 78)
-                                    .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addGap(0, 0, Short.MAX_VALUE))))))
-                .addContainerGap(76, Short.MAX_VALUE))
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel5))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtUsername)
+                                    .addComponent(txtPhone)
+                                    .addComponent(txtPassword)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(rdoTenant)
+                                .addGap(8, 8, 8)
+                                .addComponent(rdoLandlord))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jLabel2)
+                                .addGap(78, 78, 78)
+                                .addComponent(txtName, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(71, 71, 71)
+                        .addComponent(btnLogin)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnRegister)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(btnExit)))
+                .addContainerGap(72, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -154,11 +183,12 @@ public class RegisterFrame extends javax.swing.JFrame {
                     .addComponent(jLabel6)
                     .addComponent(rdoTenant)
                     .addComponent(rdoLandlord))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 23, Short.MAX_VALUE)
+                .addGap(26, 26, 26)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnExit)
-                    .addComponent(btnRegister))
-                .addGap(25, 25, 25))
+                    .addComponent(btnRegister)
+                    .addComponent(btnLogin))
+                .addContainerGap(35, Short.MAX_VALUE))
         );
 
         pack();
@@ -192,6 +222,7 @@ public class RegisterFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup btgRole;
     private javax.swing.JButton btnExit;
+    private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnRegister;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

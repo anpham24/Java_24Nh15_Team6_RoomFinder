@@ -19,15 +19,21 @@ public class RoomActionDialog extends javax.swing.JDialog {
     private DTO.RoomDTO existingRoom;   // null = thêm mới, non-null = cập nhật
     private Runnable onSaveCallback;    // callback để reload danh sách phòng
 
+    private final BLL.RoomActionController roomActionBLL = new BLL.RoomActionController();
+    private final java.util.List<javax.swing.JCheckBox> amenityCheckboxes = new java.util.ArrayList<>();
+    private final java.util.List<String> selectedImagePaths = new java.util.ArrayList<>();
+
     public RoomActionDialog(java.awt.Frame parent, DTO.UserDTO user,
                             DTO.RoomDTO room, Runnable onSave) {
         super(parent, true);
-        this.currentUser  = user;
-        this.existingRoom = room;
+        this.currentUser    = user;
+        this.existingRoom   = room;
         this.onSaveCallback = onSave;
         initComponents();
         this.setLocationRelativeTo(null);
-        new BLL.RoomActionController(this, user, room, onSave);
+        initAmenityCheckboxes();
+        if (room != null) prefillForm();
+        initEvents();
     }
 
     public RoomActionDialog(java.awt.Frame parent, boolean modal) {
@@ -36,20 +42,97 @@ public class RoomActionDialog extends javax.swing.JDialog {
         this.setLocationRelativeTo(null);
     }
 
-    // ── Public getters cho Controller ──
-    public DTO.UserDTO getCurrentUser()              { return currentUser; }
-    public DTO.RoomDTO getExistingRoom()             { return existingRoom; }
-    public Runnable getOnSaveCallback()              { return onSaveCallback; }
-    public javax.swing.JTextField getTxtTitle()      { return txtTitle; }
-    public javax.swing.JTextArea getTxtDescription() { return txtDescription; }
-    public javax.swing.JTextField getTxtAddress()    { return txtAddress; }
-    public javax.swing.JTextField getTxtPrice()      { return txtPrice; }
-    public javax.swing.JTextField getTxtArea()       { return txtArea; }
-    public javax.swing.JPanel getPnAmenity()         { return pnAmenity; }
-    public javax.swing.JPanel getPnImageList()       { return pnImageList; }
-    public javax.swing.JButton getBtnBrowse()        { return btnBrowse; }
-    public javax.swing.JButton getBtnSave()          { return btnSave; }
-    public javax.swing.JButton getBtnExit()          { return btnExit; }
+    private void initAmenityCheckboxes() {
+        pnAmenity.removeAll();
+        amenityCheckboxes.clear();
+        for (DTO.AmenityDTO a : roomActionBLL.getAllAmenities()) {
+            javax.swing.JCheckBox cb = new javax.swing.JCheckBox(a.getName());
+            cb.putClientProperty("amenityId", a.getAmenityId());
+            amenityCheckboxes.add(cb);
+            pnAmenity.add(cb);
+        }
+        pnAmenity.revalidate();
+    }
+
+    private void prefillForm() {
+        txtTitle.setText(existingRoom.getTitle());
+        txtDescription.setText(existingRoom.getDescription());
+        txtAddress.setText(existingRoom.getAddress());
+        txtPrice.setText(String.valueOf((int) existingRoom.getPrice()));
+        txtArea.setText(String.valueOf(existingRoom.getArea()));
+        java.util.List<String> roomAmenityIds = new java.util.ArrayList<>();
+        for (DTO.AmenityDTO a : existingRoom.getAmenityList()) roomAmenityIds.add(a.getAmenityId());
+        for (javax.swing.JCheckBox cb : amenityCheckboxes)
+            cb.setSelected(roomAmenityIds.contains((String) cb.getClientProperty("amenityId")));
+        selectedImagePaths.addAll(existingRoom.getImagePathList());
+        renderImagePreviews();
+    }
+
+    private void initEvents() {
+        btnBrowse.addActionListener(e -> handleBrowseImage());
+        btnSave.addActionListener(e -> handleSave());
+        btnExit.addActionListener(e -> dispose());
+    }
+
+    private void handleBrowseImage() {
+        javax.swing.JFileChooser fc = new javax.swing.JFileChooser();
+        fc.setMultiSelectionEnabled(true);
+        fc.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter(
+                "Image Files", "jpg", "jpeg", "png", "gif", "bmp"));
+        if (fc.showOpenDialog(this) != javax.swing.JFileChooser.APPROVE_OPTION) return;
+        java.util.List<String> errors = new java.util.ArrayList<>();
+        for (String p : roomActionBLL.copyImagesToProject(fc.getSelectedFiles(), errors))
+            if (!selectedImagePaths.contains(p)) selectedImagePaths.add(p);
+        if (!errors.isEmpty())
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Không thể sao chép các ảnh sau:\n" + String.join("\n", errors),
+                    "Lỗi sao chép ảnh", javax.swing.JOptionPane.WARNING_MESSAGE);
+        renderImagePreviews();
+    }
+
+    private void handleSave() {
+        java.util.List<DTO.AmenityDTO> selected = new java.util.ArrayList<>();
+        for (javax.swing.JCheckBox cb : amenityCheckboxes)
+            if (cb.isSelected())
+                selected.add(new DTO.AmenityDTO((String) cb.getClientProperty("amenityId"), cb.getText()));
+        String existingId = existingRoom != null ? existingRoom.getRoomId() : null;
+        String error = roomActionBLL.saveRoom(
+                txtTitle.getText().trim(), txtAddress.getText().trim(),
+                txtDescription.getText().trim(), txtPrice.getText().trim(), txtArea.getText().trim(),
+                new java.util.ArrayList<>(selectedImagePaths), selected,
+                currentUser.getUserId(), existingId);
+        if (error == null) {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    existingId == null ? "Thêm phòng thành công! Chờ Admin duyệt." : "Cập nhật thành công.");
+            dispose();
+            if (onSaveCallback != null) onSaveCallback.run();
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, error, "Lỗi", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void renderImagePreviews() {
+        pnImageList.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 5, 5));
+        pnImageList.removeAll();
+        for (String path : selectedImagePaths) {
+            javax.swing.JLabel thumb = new javax.swing.JLabel();
+            try {
+                javax.swing.ImageIcon icon = new javax.swing.ImageIcon(path);
+                java.awt.Image scaled = icon.getImage().getScaledInstance(100, 80, java.awt.Image.SCALE_SMOOTH);
+                thumb.setIcon(new javax.swing.ImageIcon(scaled));
+            } catch (Exception ignored) { thumb.setText("[ảnh]"); }
+            thumb.setToolTipText("Double-click để xóa ảnh");
+            final String p = path;
+            thumb.addMouseListener(new java.awt.event.MouseAdapter() {
+                @Override public void mouseClicked(java.awt.event.MouseEvent e) {
+                    if (e.getClickCount() == 2) { selectedImagePaths.remove(p); renderImagePreviews(); }
+                }
+            });
+            pnImageList.add(thumb);
+        }
+        pnImageList.revalidate();
+        pnImageList.repaint();
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
