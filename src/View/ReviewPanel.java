@@ -26,18 +26,18 @@ public class ReviewPanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtName = new javax.swing.JLabel();
-        txtContent = new javax.swing.JLabel();
-        txtRating = new javax.swing.JLabel();
+        lbName = new javax.swing.JLabel();
+        lbContent = new javax.swing.JLabel();
+        lbRating = new javax.swing.JLabel();
 
         setOpaque(false);
 
-        txtName.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
-        txtName.setText("<Tên>");
+        lbName.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        lbName.setText("<Tên>");
 
-        txtContent.setText("<Nội dung đánh giá>");
+        lbContent.setText("<Nội dung đánh giá>");
 
-        txtRating.setText("<Số sao>");
+        lbRating.setText("<Số sao>");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -48,29 +48,29 @@ public class ReviewPanel extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addComponent(txtContent, javax.swing.GroupLayout.PREFERRED_SIZE, 636, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lbContent, javax.swing.GroupLayout.PREFERRED_SIZE, 636, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtRating))
-                    .addComponent(txtName))
+                        .addComponent(lbRating))
+                    .addComponent(lbName))
                 .addContainerGap(35, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(txtName)
+                .addComponent(lbName)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(txtContent, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtRating))
+                    .addComponent(lbContent, javax.swing.GroupLayout.PREFERRED_SIZE, 95, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(lbRating))
                 .addContainerGap(21, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel txtContent;
-    private javax.swing.JLabel txtName;
-    private javax.swing.JLabel txtRating;
+    private javax.swing.JLabel lbContent;
+    private javax.swing.JLabel lbName;
+    private javax.swing.JLabel lbRating;
     // End of variables declaration//GEN-END:variables
 }

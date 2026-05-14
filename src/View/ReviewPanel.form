@@ -24,11 +24,11 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <EmptySpace min="6" pref="6" max="-2" attributes="0"/>
-                      <Component id="txtContent" min="-2" pref="636" max="-2" attributes="0"/>
+                      <Component id="lbContent" min="-2" pref="636" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="txtRating" min="-2" max="-2" attributes="0"/>
+                      <Component id="lbRating" min="-2" max="-2" attributes="0"/>
                   </Group>
-                  <Component id="txtName" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbName" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="35" max="32767" attributes="0"/>
           </Group>
@@ -38,11 +38,11 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="txtName" min="-2" max="-2" attributes="0"/>
+              <Component id="lbName" min="-2" max="-2" attributes="0"/>
               <EmptySpace type="unrelated" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="txtContent" alignment="3" min="-2" pref="95" max="-2" attributes="0"/>
-                  <Component id="txtRating" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="lbContent" alignment="3" min="-2" pref="95" max="-2" attributes="0"/>
+                  <Component id="lbRating" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="21" max="32767" attributes="0"/>
           </Group>
@@ -50,7 +50,7 @@
     </DimensionLayout>
   </Layout>
   <SubComponents>
-    <Component class="javax.swing.JLabel" name="txtName">
+    <Component class="javax.swing.JLabel" name="lbName">
       <Properties>
         <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
           <Font name="Segoe UI" size="12" style="1"/>
@@ -58,12 +58,12 @@
         <Property name="text" type="java.lang.String" value="&lt;T&#xea;n&gt;"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="txtContent">
+    <Component class="javax.swing.JLabel" name="lbContent">
       <Properties>
         <Property name="text" type="java.lang.String" value="&lt;N&#x1ed9;i dung &#x111;&#xe1;nh gi&#xe1;&gt;"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="txtRating">
+    <Component class="javax.swing.JLabel" name="lbRating">
       <Properties>
         <Property name="text" type="java.lang.String" value="&lt;S&#x1ed1; sao&gt;"/>
       </Properties>
